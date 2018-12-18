@@ -1,0 +1,25 @@
+checks:
+  php:
+    code_rating: true
+
+filter:
+  excluded_paths:
+    - tests/*
+    - vendor/*
+
+build:
+  environment:
+    php: '7.2'
+
+  dependencies:
+    before:
+      - composer install
+      - mkdir -p build/logs
+
+  tests:
+    override:
+      -
+        command: 'bin/phpunit --coverage-clover build/logs/clover.xml'
+        coverage:
+          file: 'build/logs/clover.xml'
+          format: 'clover'

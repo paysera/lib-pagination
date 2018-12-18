@@ -1,0 +1,37 @@
+{
+    "name": "paysera/lib-pagination",
+    "description": "Paginates Doctrine QueryBuilder using cursor based or offset based pagination",
+    "keywords": ["pagination", "paginator", "cursor", "offset", "limit", "page", "doctrine"],
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Paysera\\Pagination\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Paysera\\Pagination\\Tests\\": "tests"
+        }
+    },
+    "require": {
+        "php": ">=7.0",
+        "doctrine/orm": "^2.0",
+        "psr/log": "^1.0",
+        "symfony/property-access": "^2.8|^3.0|^4.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.0",
+        "friendsofphp/php-cs-fixer": "2.11.1",
+        "paysera/lib-php-cs-fixer-config": "^2.0"
+    },
+    "config": {
+        "bin-dir": "bin"
+    },
+    "scripts": {
+        "phpunit": "phpunit",
+        "fix-cs": "php-cs-fixer fix",
+        "test-cs": "php-cs-fixer fix --dry-run -v",
+        "test": ["@phpunit", "@test-cs"]
+    }
+}
