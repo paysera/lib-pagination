@@ -25,11 +25,7 @@ class QueryAnalyser
      */
     public function analyseQuery(ConfiguredQuery $configuredQuery, Pager $pager)
     {
-        $queryBuilder = $configuredQuery->getQueryBuilder();
-        $rootAlias = $this->getRootAlias($queryBuilder);
-        if ($rootAlias === null) {
-            throw new InvalidArgumentException('Invalid QueryBuilder passed - cannot resolve root select alias');
-        }
+        $analysedQuery = $this->analyseQueryWithoutPager($configuredQuery);
 
         if (
             $pager->getOffset() !== null
@@ -41,13 +37,30 @@ class QueryAnalyser
 
         $orderingConfigurations = $this->mapToOrderingConfigurations(
             $configuredQuery,
-            $rootAlias,
+            $analysedQuery->getRootAlias(),
             $pager->getOrderingPairs()
         );
 
+        return $analysedQuery
+            ->setOrderingConfigurations($orderingConfigurations)
+        ;
+    }
+
+    /**
+     * @internal
+     * @param ConfiguredQuery $configuredQuery
+     * @return AnalysedQuery
+     */
+    public function analyseQueryWithoutPager(ConfiguredQuery $configuredQuery)
+    {
+        $queryBuilder = $configuredQuery->getQueryBuilder();
+        $rootAlias = $this->getRootAlias($queryBuilder);
+        if ($rootAlias === null) {
+            throw new InvalidArgumentException('Invalid QueryBuilder passed - cannot resolve root select alias');
+        }
+
         return (new AnalysedQuery())
             ->setQueryBuilder($queryBuilder)
-            ->setOrderingConfigurations($orderingConfigurations)
             ->setRootAlias($rootAlias)
         ;
     }

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Paysera\Pagination\Tests\Functional\Service\Doctrine;
 
+use Doctrine\ORM\QueryBuilder;
 use Paysera\Pagination\Entity\OrderingConfiguration;
 use Doctrine\ORM\EntityManager;
 use Paysera\Pagination\Service\Doctrine\QueryAnalyser;
@@ -587,5 +588,39 @@ class ResultProviderTest extends DoctrineTestCase
             $this->assertSame(10, $exception->getMaximumOffset());
             $this->assertSame(11, $exception->getGivenOffset());
         }
+    }
+
+    /**
+     * @dataProvider getResultProviderForGetTotalCountForQuery
+     * @param int $expectedResult
+     * @param QueryBuilder $queryBuilder
+     */
+    public function testGetTotalCountForQuery($expectedResult, QueryBuilder $queryBuilder)
+    {
+        $configuredQuery = (new ConfiguredQuery($queryBuilder))->setTotalCountNeeded(false);
+
+        $result = $this->resultProvider->getTotalCountForQuery($configuredQuery);
+        $this->assertSame($expectedResult, $result);
+    }
+
+    public function getResultProviderForGetTotalCountForQuery()
+    {
+        $entityManager = $this->createTestEntityManager();
+        $this->createTestData($entityManager);
+        $queryBuilder = $entityManager->createQueryBuilder()
+            ->select('p')
+            ->from('PaginationTest:ParentTestEntity', 'p')
+        ;
+
+        return [
+            [
+                30,
+                $queryBuilder,
+            ],
+            [
+                11,
+                (clone $queryBuilder)->andWhere('p.name LIKE :name')->setParameter('name', 'P2%'),
+            ],
+        ];
     }
 }

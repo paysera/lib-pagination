@@ -155,6 +155,8 @@ $result->getItems(); // items in the page
 $result->getNextCursor(); // value to pass with setAfter for next page
 $result->getPreviousCursor(); // value to pass with setBefore for previous page
 $result->getTotalCount(); // available only if setTotalCountNeeded(true) was called
+
+$totalCount = $resultProvider->getTotalCountForQuery($configuredQuery); // calculate total count directly
 ```
 
 ## Using iterator

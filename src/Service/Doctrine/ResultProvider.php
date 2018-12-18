@@ -43,6 +43,13 @@ class ResultProvider
         return $result;
     }
 
+    public function getTotalCountForQuery(ConfiguredQuery $configuredQuery): int
+    {
+        $analysedQuery = $this->queryAnalyser->analyseQueryWithoutPager($configuredQuery);
+
+        return $this->findCount($analysedQuery);
+    }
+
     private function buildResult(AnalysedQuery $analysedQuery, Pager $pager)
     {
         $items = $this->findItems($analysedQuery, $pager);
