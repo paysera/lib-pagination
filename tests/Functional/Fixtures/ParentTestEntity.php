@@ -115,7 +115,7 @@ class ParentTestEntity
     }
 
     /**
-     * @param string|null $group
+     * @param string|null $groupKey
      *
      * @return $this
      */

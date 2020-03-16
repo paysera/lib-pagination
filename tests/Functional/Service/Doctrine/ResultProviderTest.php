@@ -607,7 +607,7 @@ class ResultProviderTest extends DoctrineTestCase
         $this->assertSame($expectedResult, $result);
     }
 
-    public function testGetTotalCountForQuery_throws_exception_with_more_than_one_group_by_argument()
+    public function testGetTotalCountForQueryThrowsExceptionWithMoreThanOneGroupByArgument()
     {
         $entityManager = $this->createTestEntityManager();
         $this->createTestData($entityManager);
@@ -623,7 +623,7 @@ class ResultProviderTest extends DoctrineTestCase
         $this->resultProvider->getTotalCountForQuery($configuredQuery);
     }
 
-    public function testGetTotalCountForQuery_throws_exception_with_more_than_one_group_by_expression()
+    public function testGetTotalCountForQueryThrowsExceptionWithMoreThanOneGroupByExpression()
     {
         $entityManager = $this->createTestEntityManager();
         $this->createTestData($entityManager);
@@ -666,7 +666,7 @@ class ResultProviderTest extends DoctrineTestCase
             [
                 4,
                 $queryBuilder2,
-            ]
+            ],
         ];
     }
 }
