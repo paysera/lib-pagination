@@ -33,6 +33,13 @@ class ParentTestEntity
     private $name;
 
     /**
+     * @var string|null
+     *
+     * @Column(type="string", nullable=true)
+     */
+    private $groupKey;
+
+    /**
      * @var ChildTestEntity[]|Collection
      *
      * @OneToMany(targetEntity="ChildTestEntity", mappedBy="parent")
@@ -96,6 +103,25 @@ class ParentTestEntity
             $this->addChild($child);
         }
 
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getGroupKey()
+    {
+        return $this->groupKey;
+    }
+
+    /**
+     * @param string|null $groupKey
+     *
+     * @return $this
+     */
+    public function setGroupKey(string $groupKey): self
+    {
+        $this->groupKey = $groupKey;
         return $this;
     }
 }

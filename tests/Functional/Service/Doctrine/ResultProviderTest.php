@@ -6,6 +6,7 @@ namespace Paysera\Pagination\Tests\Functional\Service\Doctrine;
 use Doctrine\ORM\QueryBuilder;
 use Paysera\Pagination\Entity\OrderingConfiguration;
 use Doctrine\ORM\EntityManager;
+use Paysera\Pagination\Exception\InvalidGroupByException;
 use Paysera\Pagination\Service\Doctrine\QueryAnalyser;
 use Paysera\Pagination\Entity\Doctrine\ConfiguredQuery;
 use Paysera\Pagination\Entity\OrderingPair;
@@ -36,10 +37,13 @@ class ResultProviderTest extends DoctrineTestCase
         );
     }
 
-    private function createTestData(EntityManager $entityManager)
+    private function createTestData(EntityManager $entityManager, int $groupEvery = 10)
     {
         for ($parentIndex = 0; $parentIndex < 30; $parentIndex++) {
             $parent = (new ParentTestEntity())->setName(sprintf('P%s', $parentIndex));
+            if ($parentIndex % $groupEvery === 0) {
+                $parent->setGroupKey(sprintf('group_%s', $parentIndex));
+            }
             $entityManager->persist($parent);
         }
 
@@ -603,23 +607,79 @@ class ResultProviderTest extends DoctrineTestCase
         $this->assertSame($expectedResult, $result);
     }
 
-    public function getResultProviderForGetTotalCountForQuery()
+    public function testGetTotalCountForQueryThrowsExceptionWithMoreThanOneGroupByArgument()
     {
         $entityManager = $this->createTestEntityManager();
         $this->createTestData($entityManager);
         $queryBuilder = $entityManager->createQueryBuilder()
             ->select('p')
             ->from('PaginationTest:ParentTestEntity', 'p')
+            ->groupBy('p.groupKey', 'p.name')
+        ;
+
+        $configuredQuery = (new ConfiguredQuery($queryBuilder))->setTotalCountNeeded(false);
+
+        $this->expectException(InvalidGroupByException::class);
+        $this->resultProvider->getTotalCountForQuery($configuredQuery);
+    }
+
+    public function testGetTotalCountForQueryThrowsExceptionWithMoreThanOneGroupByExpression()
+    {
+        $entityManager = $this->createTestEntityManager();
+        $this->createTestData($entityManager);
+        $queryBuilder = $entityManager->createQueryBuilder()
+            ->select('p')
+            ->from('PaginationTest:ParentTestEntity', 'p')
+            ->groupBy('p.groupKey')
+            ->addGroupBy('p.name')
+        ;
+
+        $configuredQuery = (new ConfiguredQuery($queryBuilder))->setTotalCountNeeded(false);
+
+        $this->expectException(InvalidGroupByException::class);
+        $this->resultProvider->getTotalCountForQuery($configuredQuery);
+    }
+
+    public function testGetTotalCountForQueryGetsCorrectCountWhenNoNullsAreInResult()
+    {
+        $entityManager = $this->createTestEntityManager();
+        $this->createTestData($entityManager, 1);
+        $queryBuilder = $entityManager->createQueryBuilder()
+            ->select('p')
+            ->from('PaginationTest:ParentTestEntity', 'p')
+            ->groupBy('p.groupKey')
+        ;
+
+        $configuredQuery = (new ConfiguredQuery($queryBuilder))->setTotalCountNeeded(false);
+        $this->assertSame(30, $this->resultProvider->getTotalCountForQuery($configuredQuery));
+    }
+
+    public function getResultProviderForGetTotalCountForQuery()
+    {
+        $entityManager = $this->createTestEntityManager();
+        $this->createTestData($entityManager);
+        $queryBuilder1 = $entityManager->createQueryBuilder()
+            ->select('p')
+            ->from('PaginationTest:ParentTestEntity', 'p')
+        ;
+        $queryBuilder2 = $entityManager->createQueryBuilder()
+            ->select('p')
+            ->from('PaginationTest:ParentTestEntity', 'p')
+            ->groupBy('p.groupKey')
         ;
 
         return [
             [
                 30,
-                $queryBuilder,
+                $queryBuilder1,
             ],
             [
                 11,
-                (clone $queryBuilder)->andWhere('p.name LIKE :name')->setParameter('name', 'P2%'),
+                (clone $queryBuilder1)->andWhere('p.name LIKE :name')->setParameter('name', 'P2%'),
+            ],
+            [
+                4,
+                $queryBuilder2,
             ],
         ];
     }
