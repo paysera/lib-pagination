@@ -13,6 +13,7 @@ use Paysera\Pagination\Entity\OrderingConfiguration;
 use Paysera\Pagination\Entity\Doctrine\ConfiguredQuery;
 use Paysera\Pagination\Entity\Pager;
 use Paysera\Pagination\Entity\Result;
+use Paysera\Pagination\Exception\InvalidGroupByException;
 use Paysera\Pagination\Service\CursorBuilderInterface;
 
 class ResultProvider
@@ -317,7 +318,31 @@ class ResultProvider
     private function findCount(AnalysedQuery $analysedQuery): int
     {
         $countQueryBuilder = $analysedQuery->cloneQueryBuilder();
+        $groupByParts = $countQueryBuilder->getDQLPart('groupBy');
         $countQueryBuilder->select(sprintf('count(%s)', $analysedQuery->getRootAlias()));
+
+        $this->validateGroupByParts($groupByParts);
+        if (count($groupByParts) === 1) {
+            return count($countQueryBuilder->getQuery()->getArrayResult());
+        }
+
         return (int)$countQueryBuilder->getQuery()->getSingleScalarResult();
+    }
+
+    private function validateGroupByParts(array $groupByParts)
+    {
+        if (count($groupByParts) > 1) {
+            $groupNames = array_map(
+                function (Expr\GroupBy $groupBy) {
+                    return $groupBy->getParts()[0];
+                },
+                $groupByParts
+            );
+            throw new InvalidGroupByException(implode(', ', $groupNames));
+        }
+
+        if (count($groupByParts) === 1 && count($groupByParts[0]->getParts()) > 1) {
+            throw new InvalidGroupByException(implode(', ', $groupByParts[0]->getParts()));
+        }
     }
 }
