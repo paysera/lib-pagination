@@ -6,6 +6,7 @@ namespace Paysera\Pagination\Service\Doctrine;
 use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\Query\Expr\Andx;
 use Doctrine\ORM\Query\Expr\Orx;
+use Doctrine\ORM\Query\Expr\GroupBy;
 use Doctrine\ORM\Query\Expr\Comparison;
 use Doctrine\ORM\QueryBuilder;
 use Paysera\Pagination\Entity\Doctrine\AnalysedQuery;
@@ -318,39 +319,53 @@ class ResultProvider
     private function findCount(AnalysedQuery $analysedQuery): int
     {
         $countQueryBuilder = $analysedQuery->cloneQueryBuilder();
-        $groupByParts = $countQueryBuilder->getDQLPart('groupBy');
+        $groupByColumn = $this->getSingleValidGroupByColumn($countQueryBuilder);
 
-        $this->validateGroupByParts($groupByParts);
-        if (count($groupByParts) === 1) {
-            $countQueryBuilder
-                ->resetDQLPart('groupBy')
-                ->select(sprintf('count(distinct %s)', $groupByParts[0]->getParts()[0]))
-            ;
-
-            $nullQueryBuilder = $analysedQuery->cloneQueryBuilder()
-                ->resetDQLPart('groupBy')
-                ->select($analysedQuery->getRootAlias())
-                ->setMaxResults(1)
-                ->andWhere($groupByParts[0]->getParts()[0] . ' is null')
-            ;
-
-            $nonNullCount = (int)$countQueryBuilder->getQuery()->getSingleScalarResult();
-            $nullExists = count($nullQueryBuilder->getQuery()->getScalarResult());
-
-            return  $nonNullCount + $nullExists;
+        if ($groupByColumn !== null) {
+            return $this->findCountWithGroupBy($groupByColumn, $analysedQuery);
         }
 
         $countQueryBuilder->select(sprintf('count(%s)', $analysedQuery->getRootAlias()));
         return (int)$countQueryBuilder->getQuery()->getSingleScalarResult();
     }
 
-    private function validateGroupByParts(array $groupByParts)
+    private function findCountWithGroupBy(string $groupByColumn, AnalysedQuery $analysedQuery): int
     {
+        $countQueryBuilder = $analysedQuery->cloneQueryBuilder();
+        $countQueryBuilder
+            ->resetDQLPart('groupBy')
+            ->select(sprintf('count(distinct %s)', $groupByColumn))
+        ;
+
+        $nullQueryBuilder = $analysedQuery->cloneQueryBuilder()
+            ->resetDQLPart('groupBy')
+            ->select($analysedQuery->getRootAlias())
+            ->setMaxResults(1)
+            ->andWhere($groupByColumn . ' is null')
+        ;
+
+        $nonNullCount = (int)$countQueryBuilder->getQuery()->getSingleScalarResult();
+        $nullExists = count($nullQueryBuilder->getQuery()->getScalarResult());
+
+        return $nonNullCount + $nullExists;
+    }
+
+    /**
+     * @param QueryBuilder $queryBuilder
+     * @return string|null
+     */
+    private function getSingleValidGroupByColumn(QueryBuilder $queryBuilder)
+    {
+        /** @var GroupBy[] $groupByParts */
+        $groupByParts = $queryBuilder->getDQLPart('groupBy');
+
+        if (count($groupByParts) === 0) {
+            return null;
+        }
+
         if (count($groupByParts) > 1) {
             $groupNames = array_map(
-                function (Expr\GroupBy $groupBy) {
-                    return $groupBy->getParts()[0];
-                },
+                function (GroupBy $groupBy) { return $groupBy->getParts()[0]; },
                 $groupByParts
             );
             throw new InvalidGroupByException(implode(', ', $groupNames));
@@ -359,5 +374,7 @@ class ResultProvider
         if (count($groupByParts) === 1 && count($groupByParts[0]->getParts()) > 1) {
             throw new InvalidGroupByException(implode(', ', $groupByParts[0]->getParts()));
         }
+
+        return $groupByParts[0]->getParts()[0];
     }
 }
