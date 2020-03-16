@@ -319,13 +319,28 @@ class ResultProvider
     {
         $countQueryBuilder = $analysedQuery->cloneQueryBuilder();
         $groupByParts = $countQueryBuilder->getDQLPart('groupBy');
-        $countQueryBuilder->select(sprintf('count(%s)', $analysedQuery->getRootAlias()));
 
         $this->validateGroupByParts($groupByParts);
         if (count($groupByParts) === 1) {
-            return count($countQueryBuilder->getQuery()->getArrayResult());
+            $countQueryBuilder
+                ->resetDQLPart('groupBy')
+                ->select(sprintf('count(distinct %s)', $groupByParts[0]->getParts()[0]))
+            ;
+
+            $nullQueryBuilder = $analysedQuery->cloneQueryBuilder()
+                ->resetDQLPart('groupBy')
+                ->select($analysedQuery->getRootAlias())
+                ->setMaxResults(1)
+                ->andWhere($groupByParts[0]->getParts()[0] . ' is null')
+            ;
+
+            $nonNullCount = (int)$countQueryBuilder->getQuery()->getSingleScalarResult();
+            $nullExists = count($nullQueryBuilder->getQuery()->getScalarResult());
+
+            return  $nonNullCount + $nullExists;
         }
 
+        $countQueryBuilder->select(sprintf('count(%s)', $analysedQuery->getRootAlias()));
         return (int)$countQueryBuilder->getQuery()->getSingleScalarResult();
     }
 

@@ -37,11 +37,11 @@ class ResultProviderTest extends DoctrineTestCase
         );
     }
 
-    private function createTestData(EntityManager $entityManager)
+    private function createTestData(EntityManager $entityManager, int $groupEvery = 10)
     {
         for ($parentIndex = 0; $parentIndex < 30; $parentIndex++) {
             $parent = (new ParentTestEntity())->setName(sprintf('P%s', $parentIndex));
-            if ($parentIndex % 10 === 0) {
+            if ($parentIndex % $groupEvery === 0) {
                 $parent->setGroupKey(sprintf('group_%s', $parentIndex));
             }
             $entityManager->persist($parent);
@@ -638,6 +638,20 @@ class ResultProviderTest extends DoctrineTestCase
 
         $this->expectException(InvalidGroupByException::class);
         $this->resultProvider->getTotalCountForQuery($configuredQuery);
+    }
+
+    public function testGetTotalCountForQueryGetsCorrectCountWhenNoNullsAreInResult()
+    {
+        $entityManager = $this->createTestEntityManager();
+        $this->createTestData($entityManager, 1);
+        $queryBuilder = $entityManager->createQueryBuilder()
+            ->select('p')
+            ->from('PaginationTest:ParentTestEntity', 'p')
+            ->groupBy('p.groupKey')
+        ;
+
+        $configuredQuery = (new ConfiguredQuery($queryBuilder))->setTotalCountNeeded(false);
+        $this->assertSame(30, $this->resultProvider->getTotalCountForQuery($configuredQuery));
     }
 
     public function getResultProviderForGetTotalCountForQuery()
