@@ -10,6 +10,7 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\Tools\SchemaTool;
 use Paysera\Pagination\Tests\Functional\Fixtures\ChildTestEntity;
+use Paysera\Pagination\Tests\Functional\Fixtures\DateTimeEntity;
 use Paysera\Pagination\Tests\Functional\Fixtures\ParentTestEntity;
 use PHPUnit\Framework\TestCase;
 use Doctrine\ORM\Configuration;
@@ -31,6 +32,7 @@ abstract class DoctrineTestCase extends TestCase
         $metadataFactory = $entityManager->getMetadataFactory();
         $metadataFactory->getMetadataFor(ParentTestEntity::class);
         $metadataFactory->getMetadataFor(ChildTestEntity::class);
+        $metadataFactory->getMetadataFor(DateTimeEntity::class);
         $metadata = $metadataFactory->getLoadedMetadata();
         $schemaTool->dropSchema($metadata);
         $schemaTool->createSchema($metadata);
