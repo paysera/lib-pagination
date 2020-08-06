@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Paysera\Pagination\Tests\Functional\Service\Doctrine;
 
+use DateTime;
 use Doctrine\ORM\QueryBuilder;
 use Paysera\Pagination\Entity\OrderingConfiguration;
 use Doctrine\ORM\EntityManager;
@@ -17,6 +18,7 @@ use Paysera\Pagination\Exception\InvalidOrderByException;
 use Paysera\Pagination\Exception\TooLargeOffsetException;
 use Paysera\Pagination\Service\CursorBuilder;
 use Paysera\Pagination\Tests\Functional\Fixtures\ChildTestEntity;
+use Paysera\Pagination\Tests\Functional\Fixtures\DateTimeEntity;
 use Paysera\Pagination\Tests\Functional\Fixtures\ParentTestEntity;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
@@ -513,6 +515,98 @@ class ResultProviderTest extends DoctrineTestCase
                     ->addOrderBy(new OrderingPair('parent_name', false))
                     ->addOrderBy(new OrderingPair('id', false))
                     ->setAfter('"C1","P9","44"'),
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider getResultProviderForDateTimeField
+     * @param Result $expectedResult
+     * @param Pager $pager
+     */
+    public function testGetResultForQueryWithDateTimeField(Result $expectedResult, Pager $pager)
+    {
+        $entityManager = $this->createTestEntityManager();
+        $this->createDateTimeRelatedData($entityManager);
+
+        $queryBuilder = $entityManager->createQueryBuilder()
+            ->select('d')
+            ->from('PaginationTest:DateTimeEntity', 'd')
+        ;
+
+        $configuredQuery = (new ConfiguredQuery($queryBuilder))->addOrderingConfiguration(
+            'created_at',
+            new OrderingConfiguration('d.createdAt', 'createdAt')
+        );
+
+        $result = $this->resultProvider->getResultForQuery($configuredQuery, $pager);
+        $result->setItems(array_map(function (DateTimeEntity $item) {
+            return (string)$item->getId();
+        }, $result->getItems()));
+
+        $this->assertEquals($expectedResult, $result);
+    }
+
+    private function createDateTimeRelatedData(EntityManager $entityManager)
+    {
+        for ($i = 0; $i < 30; $i++) {
+            $entity1 = (new DateTimeEntity())->setCreatedAt(new DateTime(sprintf('2020-02-02 12:00:%s', $i)));
+            $entity2 = (new DateTimeEntity())->setCreatedAt(new DateTime(sprintf('2020-02-02 12:00:%s', $i)));
+            $entityManager->persist($entity1);
+            $entityManager->persist($entity2);
+        }
+
+        $entityManager->flush();
+    }
+
+    public function getResultProviderForDateTimeField()
+    {
+        return [
+            'first page' => [
+                (new Result())
+                    ->setItems([1, 2, 3])
+                    ->setHasNext(true)
+                    ->setHasPrevious(false)
+                    ->setPreviousCursor('"2020-02-02 12:00:00","1"')
+                    ->setNextCursor('"2020-02-02 12:00:01","3"'),
+                (new Pager())
+                    ->setLimit(3)
+                    ->addOrderBy(new OrderingPair('created_at', true)),
+            ],
+            'second page' => [
+                (new Result())
+                    ->setItems([4, 5, 6])
+                    ->setHasNext(true)
+                    ->setHasPrevious(true)
+                    ->setPreviousCursor('"2020-02-02 12:00:01","4"')
+                    ->setNextCursor('"2020-02-02 12:00:02","6"'),
+                (new Pager())
+                    ->setLimit(3)
+                    ->addOrderBy(new OrderingPair('created_at', true))
+                    ->setAfter('"2020-02-02 12:00:01","3"'),
+            ],
+            'first page from second' => [
+                (new Result())
+                    ->setItems([1, 2, 3])
+                    ->setHasNext(true)
+                    ->setHasPrevious(false)
+                    ->setPreviousCursor('"2020-02-02 12:00:00","1"')
+                    ->setNextCursor('"2020-02-02 12:00:01","3"'),
+                (new Pager())
+                    ->setLimit(3)
+                    ->addOrderBy(new OrderingPair('created_at', true))
+                    ->setBefore('"2020-02-02 12:00:01","4"'),
+            ],
+            'desc order' => [
+                (new Result())
+                    ->setItems([60, 59, 58])
+                    ->setHasNext(true)
+                    ->setHasPrevious(false)
+                    ->setPreviousCursor('"2020-02-02 12:00:29","60"')
+                    ->setNextCursor('"2020-02-02 12:00:28","58"'),
+                (new Pager())
+                    ->setLimit(3)
+                    ->addOrderBy(new OrderingPair('created_at', false)),
             ],
         ];
     }

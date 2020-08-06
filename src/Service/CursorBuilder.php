@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Paysera\Pagination\Service;
 
+use DateTimeInterface;
 use Paysera\Pagination\Entity\OrderingConfiguration;
 use Paysera\Pagination\Entity\ParsedCursor;
 use Paysera\Pagination\Exception\InvalidCursorException;
@@ -68,13 +69,24 @@ class CursorBuilder implements CursorBuilderInterface
         return $this->convertArrayToCursor($cursor);
     }
 
-    private function getCursorItemValue($item, OrderingConfiguration $orderingConfiguration)
+    private function getCursorItemValue($item, OrderingConfiguration $orderingConfiguration): string
     {
         if ($orderingConfiguration->getAccessorPath() !== null) {
-            return (string)$this->propertyAccessor->getValue($item, $orderingConfiguration->getAccessorPath());
+            $value = $this->propertyAccessor->getValue($item, $orderingConfiguration->getAccessorPath());
+        } else {
+            $value = call_user_func($orderingConfiguration->getAccessorClosure(), $item);
         }
 
-        return call_user_func($orderingConfiguration->getAccessorClosure(), $item);
+        return $this->processValue($value);
+    }
+
+    private function processValue($value): string
+    {
+        if ($value instanceof DateTimeInterface) {
+            return $value->format('Y-m-d H:i:s');
+        }
+
+        return (string)$value;
     }
 
     private function convertArrayToCursor(array $cursorElements): string
