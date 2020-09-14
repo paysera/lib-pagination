@@ -36,9 +36,9 @@ class ResultProvider
 
         if ($configuredQuery->getItemTransformer() !== null) {
             $transformedItems = [];
+            $transform = $configuredQuery->getItemTransformer();
             foreach ($result->getItems() as $item) {
-                $callable = $configuredQuery->getItemTransformer();
-                $transformedItems[] = $callable($item);
+                $transformedItems[] = $transform($item);
             }
 
             $result->setItems($transformedItems);
