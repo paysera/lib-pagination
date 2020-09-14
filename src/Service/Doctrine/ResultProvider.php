@@ -34,6 +34,16 @@ class ResultProvider
 
         $result = $this->buildResult($analysedQuery, $pager);
 
+        if ($configuredQuery->getItemTransformer() !== null) {
+            $transformedItems = [];
+            foreach ($result->getItems() as $item) {
+                $callable = $configuredQuery->getItemTransformer();
+                $transformedItems[] = $callable($item);
+            }
+
+            $result->setItems($transformedItems);
+        }
+
         if ($configuredQuery->isTotalCountNeeded()) {
             $totalCount = $this->calculateTotalCount($pager, count($result->getItems()));
             if ($totalCount === null) {

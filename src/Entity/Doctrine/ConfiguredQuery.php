@@ -9,6 +9,10 @@ use Paysera\Pagination\Exception\InvalidOrderByException;
 use InvalidArgumentException;
 use RuntimeException;
 
+/**
+ * @deprecated Will be removed with next major version
+ * @see ResultConfiguration
+ */
 class ConfiguredQuery
 {
     /**
@@ -30,6 +34,11 @@ class ConfiguredQuery
      * @var int|null
      */
     private $maximumOffset;
+
+    /**
+     * @var callable
+     */
+    private $itemTransformer;
 
     public function __construct(QueryBuilder $queryBuilder)
     {
@@ -123,5 +132,20 @@ class ConfiguredQuery
         }
 
         return $this->maximumOffset;
+    }
+
+    /**
+     * @return callable|null
+     */
+    public function getItemTransformer()
+    {
+        return $this->itemTransformer;
+    }
+
+    public function setItemTransformer(callable $itemTransformer): self
+    {
+        $this->itemTransformer = $itemTransformer;
+
+        return $this;
     }
 }

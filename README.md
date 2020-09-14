@@ -96,8 +96,8 @@ composer require paysera/lib-pagination
 Use `ResultProvider` class (service) to provide the result.
 
 To get the result, two arguments are needed:
-- `ConfiguredQuery`. This is wrapper around `QueryBuilder` and has configuration for available ordering fields,
-maximum offset and whether total count should be calculated;
+- `ResultConfiguration`. This is wrapper around `QueryBuilder` and has configuration for available ordering fields,
+maximum offset, result item transformation and whether total count should be calculated;
 - `Pager`. This holds parameters provided by the user: offset or after/before cursor, limit and ordering directions.
 
 Generally `ConfiguredQuery` holds internals related to `QueryBuilder` so it's recommended to return this from the
@@ -108,10 +108,10 @@ Generally `ConfiguredQuery` holds internals related to `QueryBuilder` so it's re
 Example usage:
 ```php
 <?php
+use Paysera\Pagination\Entity\Doctrine\ResultConfiguration;
 use Paysera\Pagination\Service\Doctrine\ResultProvider;
 use Paysera\Pagination\Service\CursorBuilder;
 use Paysera\Pagination\Service\Doctrine\QueryAnalyser;
-use Paysera\Pagination\Entity\Doctrine\ConfiguredQuery;
 use Paysera\Pagination\Entity\OrderingConfiguration;
 use Paysera\Pagination\Entity\Pager;
 use Paysera\Pagination\Entity\OrderingPair;
@@ -131,7 +131,7 @@ $queryBuilder = $entityManager->createQueryBuilder()
     ->setParameter('param', 'some value')
 ;
 
-$configuredQuery = (new ConfiguredQuery($queryBuilder))
+$configuredQuery = (new ResultConfiguration($queryBuilder))
     ->addOrderingConfiguration(
         'my_field_name',
         (new OrderingConfiguration('m.field', 'field'))->setOrderAscending(true)
@@ -139,6 +139,9 @@ $configuredQuery = (new ConfiguredQuery($queryBuilder))
     ->addOrderingConfiguration('my_other_name', new OrderingConfiguration('m.otherField', 'otherField'))
     ->setTotalCountNeeded(true) // total count will be returned only if this is called
     ->setMaximumOffset(100) // you can optionally limit maximum offset
+    ->setItemTransformer(function ($item) {
+        // return transformed item if needed
+    })
 ;
 
 $pager = (new Pager())
@@ -171,7 +174,7 @@ and to optimize the process.
 Using `ResultIterator`:
 ```php
 <?php
-use Paysera\Pagination\Entity\Doctrine\ConfiguredQuery;
+use Paysera\Pagination\Entity\Doctrine\ResultConfiguration;
 use Paysera\Pagination\Service\Doctrine\ResultIterator;
 use Paysera\Pagination\Service\CursorBuilder;
 use Paysera\Pagination\Service\Doctrine\QueryAnalyser;
@@ -179,7 +182,7 @@ use Paysera\Pagination\Service\Doctrine\ResultProvider;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Psr\Log\NullLogger;
 
-/** @var ConfiguredQuery $configuredQuery */
+/** @var ResultConfiguration $resultConfiguration */
 
 $resultIterator = new ResultIterator(
     new ResultProvider(
@@ -190,7 +193,7 @@ $resultIterator = new ResultIterator(
     $defaultLimit = 1000
 );
 
-foreach ($this->resultIterator->iterate($configuredQuery) as $item) {
+foreach ($this->resultIterator->iterate($resultConfiguration) as $item) {
     // process $item where flush is not needed
     // for example, send ID or other data to working queue, process files etc.
 }
@@ -200,7 +203,7 @@ foreach ($this->resultIterator->iterate($configuredQuery) as $item) {
 Using `FlushingResultIterator`:
 ```php
 <?php
-use Paysera\Pagination\Entity\Doctrine\ConfiguredQuery;
+use Paysera\Pagination\Entity\Doctrine\ResultConfiguration;
 use Paysera\Pagination\Service\Doctrine\FlushingResultIterator;
 use Paysera\Pagination\Service\CursorBuilder;
 use Paysera\Pagination\Service\Doctrine\QueryAnalyser;
@@ -209,7 +212,7 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
 use Psr\Log\NullLogger;
 use Doctrine\ORM\EntityManagerInterface;
 
-/** @var ConfiguredQuery $configuredQuery */
+/** @var ResultConfiguration $resultConfiguration */
 /** @var EntityManagerInterface $entityManager */
 
 $resultIterator = new FlushingResultIterator(
@@ -222,7 +225,7 @@ $resultIterator = new FlushingResultIterator(
     $entityManager
 );
 
-foreach ($this->resultIterator->iterate($configuredQuery) as $item) {
+foreach ($this->resultIterator->iterate($resultConfiguration) as $item) {
     // process $item or other entities where flush will be called after each page
     // for example:
     $item->setTitle(formatTitleFor($item));
