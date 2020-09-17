@@ -108,7 +108,7 @@ Generally `ConfiguredQuery` holds internals related to `QueryBuilder` so it's re
 Example usage:
 ```php
 <?php
-use Paysera\Pagination\Entity\Doctrine\ResultConfiguration;
+use Paysera\Pagination\Entity\Doctrine\ConfiguredQuery;
 use Paysera\Pagination\Service\Doctrine\ResultProvider;
 use Paysera\Pagination\Service\CursorBuilder;
 use Paysera\Pagination\Service\Doctrine\QueryAnalyser;
@@ -131,7 +131,7 @@ $queryBuilder = $entityManager->createQueryBuilder()
     ->setParameter('param', 'some value')
 ;
 
-$configuredQuery = (new ResultConfiguration($queryBuilder))
+$configuredQuery = (new ConfiguredQuery($queryBuilder))
     ->addOrderingConfiguration(
         'my_field_name',
         (new OrderingConfiguration('m.field', 'field'))->setOrderAscending(true)
@@ -174,7 +174,7 @@ and to optimize the process.
 Using `ResultIterator`:
 ```php
 <?php
-use Paysera\Pagination\Entity\Doctrine\ResultConfiguration;
+use Paysera\Pagination\Entity\Doctrine\ConfiguredQuery;
 use Paysera\Pagination\Service\Doctrine\ResultIterator;
 use Paysera\Pagination\Service\CursorBuilder;
 use Paysera\Pagination\Service\Doctrine\QueryAnalyser;
@@ -182,9 +182,9 @@ use Paysera\Pagination\Service\Doctrine\ResultProvider;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Psr\Log\NullLogger;
 
-/** @var ResultConfiguration $resultConfiguration */
+/** @var ConfiguredQuery $configuredQuery */
 
-$resultIterator = new ResultIterator(
+$configuredQuery = new ResultIterator(
     new ResultProvider(
         new QueryAnalyser(),
         new CursorBuilder(PropertyAccess::createPropertyAccessor())
@@ -193,7 +193,7 @@ $resultIterator = new ResultIterator(
     $defaultLimit = 1000
 );
 
-foreach ($this->resultIterator->iterate($resultConfiguration) as $item) {
+foreach ($this->resultIterator->iterate($configuredQuery) as $item) {
     // process $item where flush is not needed
     // for example, send ID or other data to working queue, process files etc.
 }
@@ -203,7 +203,7 @@ foreach ($this->resultIterator->iterate($resultConfiguration) as $item) {
 Using `FlushingResultIterator`:
 ```php
 <?php
-use Paysera\Pagination\Entity\Doctrine\ResultConfiguration;
+use Paysera\Pagination\Entity\Doctrine\ConfiguredQuery;
 use Paysera\Pagination\Service\Doctrine\FlushingResultIterator;
 use Paysera\Pagination\Service\CursorBuilder;
 use Paysera\Pagination\Service\Doctrine\QueryAnalyser;
@@ -212,10 +212,10 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
 use Psr\Log\NullLogger;
 use Doctrine\ORM\EntityManagerInterface;
 
-/** @var ResultConfiguration $resultConfiguration */
+/** @var ConfiguredQuery $configuredQuery */
 /** @var EntityManagerInterface $entityManager */
 
-$resultIterator = new FlushingResultIterator(
+$configuredQuery = new FlushingResultIterator(
     new ResultProvider(
         new QueryAnalyser(),
         new CursorBuilder(PropertyAccess::createPropertyAccessor())
@@ -225,7 +225,7 @@ $resultIterator = new FlushingResultIterator(
     $entityManager
 );
 
-foreach ($this->resultIterator->iterate($resultConfiguration) as $item) {
+foreach ($this->resultIterator->iterate($configuredQuery) as $item) {
     // process $item or other entities where flush will be called after each page
     // for example:
     $item->setTitle(formatTitleFor($item));

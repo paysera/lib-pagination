@@ -9,10 +9,6 @@ use Paysera\Pagination\Exception\InvalidOrderByException;
 use InvalidArgumentException;
 use RuntimeException;
 
-/**
- * @deprecated Will be removed with next major version
- * @see ResultConfiguration
- */
 class ConfiguredQuery
 {
     /**
