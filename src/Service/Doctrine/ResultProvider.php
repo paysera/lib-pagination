@@ -35,13 +35,7 @@ class ResultProvider
         $result = $this->buildResult($analysedQuery, $pager);
 
         if ($configuredQuery->getItemTransformer() !== null) {
-            $transformedItems = [];
-            $transform = $configuredQuery->getItemTransformer();
-            foreach ($result->getItems() as $item) {
-                $transformedItems[] = $transform($item);
-            }
-
-            $result->setItems($transformedItems);
+            $this->transformResultItems($configuredQuery->getItemTransformer(), $result);
         }
 
         if ($configuredQuery->isTotalCountNeeded()) {
@@ -79,8 +73,7 @@ class ResultProvider
             ->setPreviousCursor($previousCursor)
             ->setNextCursor($nextCursor)
             ->setHasPrevious($this->existsBeforeCursor($previousCursor, $analysedQuery))
-            ->setHasNext($this->existsAfterCursor($nextCursor, $analysedQuery))
-        ;
+            ->setHasNext($this->existsAfterCursor($nextCursor, $analysedQuery));
     }
 
     private function findItems(AnalysedQuery $analysedQuery, Pager $pager)
@@ -214,8 +207,7 @@ class ResultProvider
                 ->setPreviousCursor($pager->getBefore())
                 ->setNextCursor($nextCursor)
                 ->setHasPrevious(false)
-                ->setHasNext($this->existsAfterCursor($nextCursor, $analysedQuery))
-            ;
+                ->setHasNext($this->existsAfterCursor($nextCursor, $analysedQuery));
 
         } elseif ($pager->getAfter() !== null) {
             $previousCursor = $this->cursorBuilder->invertCursorInclusion($pager->getAfter());
@@ -223,8 +215,7 @@ class ResultProvider
                 ->setPreviousCursor($previousCursor)
                 ->setNextCursor($pager->getAfter())
                 ->setHasPrevious($this->existsBeforeCursor($previousCursor, $analysedQuery))
-                ->setHasNext(false)
-            ;
+                ->setHasNext(false);
 
         } elseif ($pager->getOffset() !== null && $pager->getOffset() > 0) {
             return $this->buildResultForTooLargeOffset($analysedQuery);
@@ -233,8 +224,7 @@ class ResultProvider
 
         return (new Result())
             ->setHasPrevious(false)
-            ->setHasNext(false)
-        ;
+            ->setHasNext(false);
     }
 
     private function buildResultForZeroLimit(AnalysedQuery $analysedQuery, Pager $zeroLimitPager): Result
@@ -254,8 +244,7 @@ class ResultProvider
             ->setPreviousCursor($previousCursor)
             ->setNextCursor($nextCursor)
             ->setHasPrevious($this->existsBeforeCursor($previousCursor, $analysedQuery))
-            ->setHasNext(true)
-        ;
+            ->setHasNext(true);
 
     }
 
@@ -276,8 +265,7 @@ class ResultProvider
         return $result
             ->setHasPrevious(true)
             ->setPreviousCursor($this->cursorBuilder->buildCursorWithIncludedItem($lastItemCursor))
-            ->setNextCursor($lastItemCursor)
-        ;
+            ->setNextCursor($lastItemCursor);
     }
 
     /**
@@ -289,8 +277,7 @@ class ResultProvider
         $reversedOrderingConfigurations = [];
         foreach ($orderingConfigurations as $orderingConfiguration) {
             $reversedOrderingConfigurations[] = (clone $orderingConfiguration)
-                ->setOrderAscending(!$orderingConfiguration->isOrderAscending())
-            ;
+                ->setOrderAscending(!$orderingConfiguration->isOrderAscending());
         }
         return $reversedOrderingConfigurations;
     }
@@ -299,8 +286,7 @@ class ResultProvider
     {
         $nextPager = (new Pager())
             ->setBefore($previousCursor)
-            ->setLimit(1)
-        ;
+            ->setLimit(1);
         return count($this->findItems($analysedQuery, $nextPager)) > 0;
     }
 
@@ -308,8 +294,7 @@ class ResultProvider
     {
         $nextPager = (new Pager())
             ->setAfter($nextCursor)
-            ->setLimit(1)
-        ;
+            ->setLimit(1);
         return count($this->findItems($analysedQuery, $nextPager)) > 0;
     }
 
@@ -344,15 +329,13 @@ class ResultProvider
         $countQueryBuilder = $analysedQuery->cloneQueryBuilder();
         $countQueryBuilder
             ->resetDQLPart('groupBy')
-            ->select(sprintf('count(distinct %s)', $groupByColumn))
-        ;
+            ->select(sprintf('count(distinct %s)', $groupByColumn));
 
         $nullQueryBuilder = $analysedQuery->cloneQueryBuilder()
             ->resetDQLPart('groupBy')
             ->select($analysedQuery->getRootAlias())
             ->setMaxResults(1)
-            ->andWhere($groupByColumn . ' is null')
-        ;
+            ->andWhere($groupByColumn . ' is null');
 
         $nonNullCount = (int)$countQueryBuilder->getQuery()->getSingleScalarResult();
         $nullExists = count($nullQueryBuilder->getQuery()->getScalarResult());
@@ -375,7 +358,9 @@ class ResultProvider
 
         if (count($groupByParts) > 1) {
             $groupNames = array_map(
-                function (GroupBy $groupBy) { return $groupBy->getParts()[0]; },
+                function (GroupBy $groupBy) {
+                    return $groupBy->getParts()[0];
+                },
                 $groupByParts
             );
             throw new InvalidGroupByException(implode(', ', $groupNames));
@@ -386,5 +371,15 @@ class ResultProvider
         }
 
         return $groupByParts[0]->getParts()[0];
+    }
+
+    private function transformResultItems(callable $transform, Result $result)
+    {
+        $transformedItems = [];
+        foreach ($result->getItems() as $item) {
+            $transformedItems[] = $transform($item);
+        }
+
+        $result->setItems($transformedItems);
     }
 }

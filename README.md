@@ -96,7 +96,7 @@ composer require paysera/lib-pagination
 Use `ResultProvider` class (service) to provide the result.
 
 To get the result, two arguments are needed:
-- `ResultConfiguration`. This is wrapper around `QueryBuilder` and has configuration for available ordering fields,
+- `ConfiguredQuery`. This is wrapper around `QueryBuilder` and has configuration for available ordering fields,
 maximum offset, result item transformation and whether total count should be calculated;
 - `Pager`. This holds parameters provided by the user: offset or after/before cursor, limit and ordering directions.
 
@@ -184,7 +184,7 @@ use Psr\Log\NullLogger;
 
 /** @var ConfiguredQuery $configuredQuery */
 
-$configuredQuery = new ResultIterator(
+$resultIterator = new ResultIterator(
     new ResultProvider(
         new QueryAnalyser(),
         new CursorBuilder(PropertyAccess::createPropertyAccessor())
@@ -215,7 +215,7 @@ use Doctrine\ORM\EntityManagerInterface;
 /** @var ConfiguredQuery $configuredQuery */
 /** @var EntityManagerInterface $entityManager */
 
-$configuredQuery = new FlushingResultIterator(
+$resultIterator = new FlushingResultIterator(
     new ResultProvider(
         new QueryAnalyser(),
         new CursorBuilder(PropertyAccess::createPropertyAccessor())
