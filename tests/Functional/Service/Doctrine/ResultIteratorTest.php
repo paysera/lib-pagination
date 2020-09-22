@@ -135,9 +135,13 @@ class ResultIteratorTest extends DoctrineTestCase
         $configuredQuery->setItemTransformer(function ($item) {
             return $item->getName();
         });
-
-        $array = iterator_to_array($this->resultIterator->iterate($configuredQuery));
-        list($resultItem) = $array;
+        $resultArray = iterator_to_array($this->resultIterator->iterate($configuredQuery));
+        list($resultItem) = $resultArray;
         $this->assertEquals('P9', $resultItem);
+
+        $configuredQuery = new ConfiguredQuery($queryBuilder);
+        $resultArray = iterator_to_array($this->resultIterator->iterate($configuredQuery));
+        list($resultItem) = $resultArray;
+        $this->assertEquals('P9', $resultItem->getName());
     }
 }
