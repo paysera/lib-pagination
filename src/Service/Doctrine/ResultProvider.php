@@ -34,6 +34,10 @@ class ResultProvider
 
         $result = $this->buildResult($analysedQuery, $pager);
 
+        if ($configuredQuery->getItemTransformer() !== null) {
+            $this->transformResultItems($configuredQuery->getItemTransformer(), $result);
+        }
+
         if ($configuredQuery->isTotalCountNeeded()) {
             $totalCount = $this->calculateTotalCount($pager, count($result->getItems()));
             if ($totalCount === null) {
@@ -246,7 +250,6 @@ class ResultProvider
             ->setHasPrevious($this->existsBeforeCursor($previousCursor, $analysedQuery))
             ->setHasNext(true)
         ;
-
     }
 
     private function buildResultForTooLargeOffset(AnalysedQuery $analysedQuery): Result
@@ -291,6 +294,7 @@ class ResultProvider
             ->setBefore($previousCursor)
             ->setLimit(1)
         ;
+
         return count($this->findItems($analysedQuery, $nextPager)) > 0;
     }
 
@@ -300,6 +304,7 @@ class ResultProvider
             ->setAfter($nextCursor)
             ->setLimit(1)
         ;
+
         return count($this->findItems($analysedQuery, $nextPager)) > 0;
     }
 
@@ -365,7 +370,9 @@ class ResultProvider
 
         if (count($groupByParts) > 1) {
             $groupNames = array_map(
-                function (GroupBy $groupBy) { return $groupBy->getParts()[0]; },
+                function (GroupBy $groupBy) {
+                    return $groupBy->getParts()[0];
+                },
                 $groupByParts
             );
             throw new InvalidGroupByException(implode(', ', $groupNames));
@@ -376,5 +383,15 @@ class ResultProvider
         }
 
         return $groupByParts[0]->getParts()[0];
+    }
+
+    private function transformResultItems(callable $transform, Result $result)
+    {
+        $transformedItems = [];
+        foreach ($result->getItems() as $item) {
+            $transformedItems[] = $transform($item);
+        }
+
+        $result->setItems($transformedItems);
     }
 }

@@ -120,4 +120,28 @@ class ResultIteratorTest extends DoctrineTestCase
             return $logInfo[0] === 'info';
         }));
     }
+
+    public function testTransformResultItems()
+    {
+        $entityManager = $this->createTestEntityManager();
+        $this->createTestData($entityManager);
+
+        $queryBuilder = $entityManager->createQueryBuilder()
+            ->select('p')
+            ->from('PaginationTest:ParentTestEntity', 'p')
+        ;
+
+        $configuredQuery = new ConfiguredQuery($queryBuilder);
+        $configuredQuery->setItemTransformer(function ($item) {
+            return $item->getName();
+        });
+        $resultArray = iterator_to_array($this->resultIterator->iterate($configuredQuery));
+        list($resultItem) = $resultArray;
+        $this->assertEquals('P9', $resultItem);
+
+        $configuredQuery = new ConfiguredQuery($queryBuilder);
+        $resultArray = iterator_to_array($this->resultIterator->iterate($configuredQuery));
+        list($resultItem) = $resultArray;
+        $this->assertEquals('P9', $resultItem->getName());
+    }
 }

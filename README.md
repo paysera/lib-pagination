@@ -97,7 +97,7 @@ Use `ResultProvider` class (service) to provide the result.
 
 To get the result, two arguments are needed:
 - `ConfiguredQuery`. This is wrapper around `QueryBuilder` and has configuration for available ordering fields,
-maximum offset and whether total count should be calculated;
+maximum offset, result item transformation and whether total count should be calculated;
 - `Pager`. This holds parameters provided by the user: offset or after/before cursor, limit and ordering directions.
 
 Generally `ConfiguredQuery` holds internals related to `QueryBuilder` so it's recommended to return this from the
@@ -108,10 +108,10 @@ Generally `ConfiguredQuery` holds internals related to `QueryBuilder` so it's re
 Example usage:
 ```php
 <?php
+use Paysera\Pagination\Entity\Doctrine\ConfiguredQuery;
 use Paysera\Pagination\Service\Doctrine\ResultProvider;
 use Paysera\Pagination\Service\CursorBuilder;
 use Paysera\Pagination\Service\Doctrine\QueryAnalyser;
-use Paysera\Pagination\Entity\Doctrine\ConfiguredQuery;
 use Paysera\Pagination\Entity\OrderingConfiguration;
 use Paysera\Pagination\Entity\Pager;
 use Paysera\Pagination\Entity\OrderingPair;
@@ -139,6 +139,9 @@ $configuredQuery = (new ConfiguredQuery($queryBuilder))
     ->addOrderingConfiguration('my_other_name', new OrderingConfiguration('m.otherField', 'otherField'))
     ->setTotalCountNeeded(true) // total count will be returned only if this is called
     ->setMaximumOffset(100) // you can optionally limit maximum offset
+    ->setItemTransformer(function ($item) {
+        // return transformed item if needed
+    })
 ;
 
 $pager = (new Pager())
