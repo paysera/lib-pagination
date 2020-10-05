@@ -27,6 +27,11 @@ class AnalysedQuery
     private $orderingConfigurations;
 
     /**
+     * @var callable|null
+     */
+    private $queryModifier;
+
+    /**
      * @return QueryBuilder
      */
     public function cloneQueryBuilder(): QueryBuilder
@@ -77,6 +82,21 @@ class AnalysedQuery
     public function setOrderingConfigurations(array $orderingConfigurations): self
     {
         $this->orderingConfigurations = $orderingConfigurations;
+        return $this;
+    }
+
+    /**
+     * @return callable|null
+     */
+    public function getQueryModifier()
+    {
+        return $this->queryModifier;
+    }
+
+    public function setQueryModifier(callable $queryModifier): self
+    {
+        $this->queryModifier = $queryModifier;
+
         return $this;
     }
 }

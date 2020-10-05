@@ -81,6 +81,10 @@ class ResultProvider
     {
         $pagedQueryBuilder = $this->pageQueryBuilder($analysedQuery, $pager);
         $query = $pagedQueryBuilder->getQuery();
+        if ($analysedQuery->getQueryModifier() !== null) {
+            $queryModifier = $analysedQuery->getQueryModifier();
+            $query = $queryModifier($query);
+        }
         $items = $query->getResult();
 
         if ($pager->getBefore() !== null) {

@@ -32,9 +32,14 @@ class ConfiguredQuery
     private $maximumOffset;
 
     /**
-     * @var callable
+     * @var callable|null
      */
     private $itemTransformer;
+
+    /**
+     * @var callable|null
+     */
+    private $queryModifier;
 
     public function __construct(QueryBuilder $queryBuilder)
     {
@@ -141,6 +146,21 @@ class ConfiguredQuery
     public function setItemTransformer(callable $itemTransformer): self
     {
         $this->itemTransformer = $itemTransformer;
+
+        return $this;
+    }
+
+    /**
+     * @return callable|null
+     */
+    public function getQueryModifier()
+    {
+        return $this->queryModifier;
+    }
+
+    public function setQueryModifier(callable $queryModifier): self
+    {
+        $this->queryModifier = $queryModifier;
 
         return $this;
     }

@@ -23,9 +23,12 @@ class QueryAnalyser
      * @param Pager $pager
      * @return AnalysedQuery
      */
-    public function analyseQuery(ConfiguredQuery $configuredQuery, Pager $pager)
+    public function analyseQuery(ConfiguredQuery $configuredQuery, Pager $pager): AnalysedQuery
     {
         $analysedQuery = $this->analyseQueryWithoutPager($configuredQuery);
+        if ($configuredQuery->getQueryModifier() !== null) {
+            $analysedQuery->setQueryModifier($configuredQuery->getQueryModifier());
+        }
 
         if (
             $pager->getOffset() !== null
@@ -51,7 +54,7 @@ class QueryAnalyser
      * @param ConfiguredQuery $configuredQuery
      * @return AnalysedQuery
      */
-    public function analyseQueryWithoutPager(ConfiguredQuery $configuredQuery)
+    public function analyseQueryWithoutPager(ConfiguredQuery $configuredQuery): AnalysedQuery
     {
         $queryBuilder = $configuredQuery->getQueryBuilder();
         $rootAlias = $this->getRootAlias($queryBuilder);
@@ -99,8 +102,11 @@ class QueryAnalyser
      * @param array|OrderingPair[] $orderingPairs
      * @return array|OrderingConfiguration[]
      */
-    private function mapToOrderingConfigurations(ConfiguredQuery $configuredQuery, string $rootAlias, array $orderingPairs)
-    {
+    private function mapToOrderingConfigurations(
+        ConfiguredQuery $configuredQuery,
+        string $rootAlias,
+        array $orderingPairs
+    ): array {
         $orderingConfigurations = [];
         $idIncluded = false;
         $defaultAscending = null;
