@@ -108,6 +108,7 @@ Generally `ConfiguredQuery` holds internals related to `QueryBuilder` so it's re
 Example usage:
 ```php
 <?php
+use Doctrine\ORM\Query;
 use Paysera\Pagination\Entity\Doctrine\ConfiguredQuery;
 use Paysera\Pagination\Service\Doctrine\ResultProvider;
 use Paysera\Pagination\Service\CursorBuilder;
@@ -141,6 +142,11 @@ $configuredQuery = (new ConfiguredQuery($queryBuilder))
     ->setMaximumOffset(100) // you can optionally limit maximum offset
     ->setItemTransformer(function ($item) {
         // return transformed item if needed
+    })
+    ->setQueryModifier(function (Query $query) {
+        $modifiedQuery = clone $query;
+        // modify query (set query hints, for example)
+        return $modifiedQuery;
     })
 ;
 
