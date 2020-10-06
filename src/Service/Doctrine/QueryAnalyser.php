@@ -62,10 +62,15 @@ class QueryAnalyser
             throw new InvalidArgumentException('Invalid QueryBuilder passed - cannot resolve root select alias');
         }
 
-        return (new AnalysedQuery())
+        $analysedQuery = (new AnalysedQuery())
             ->setQueryBuilder($queryBuilder)
             ->setRootAlias($rootAlias)
         ;
+        if ($configuredQuery->getQueryModifier() !== null) {
+            $analysedQuery->setQueryModifier($configuredQuery->getQueryModifier());
+        }
+
+        return $analysedQuery;
     }
 
     /**

@@ -335,7 +335,14 @@ class ResultProvider
         }
 
         $countQueryBuilder->select(sprintf('count(%s)', $analysedQuery->getRootAlias()));
-        return (int)$countQueryBuilder->getQuery()->getSingleScalarResult();
+
+        $query = $countQueryBuilder->getQuery();
+        if ($analysedQuery->getQueryModifier() !== null) {
+            $queryModifier = $analysedQuery->getQueryModifier();
+            $query = $queryModifier($query);
+        }
+
+        return (int)$query->getSingleScalarResult();
     }
 
     private function findCountWithGroupBy(string $groupByColumn, AnalysedQuery $analysedQuery): int
@@ -353,8 +360,18 @@ class ResultProvider
             ->andWhere($groupByColumn . ' is null')
         ;
 
-        $nonNullCount = (int)$countQueryBuilder->getQuery()->getSingleScalarResult();
-        $nullExists = count($nullQueryBuilder->getQuery()->getScalarResult());
+        $queryModifier = $analysedQuery->getQueryModifier();
+        $nonNullCountQuery = $countQueryBuilder->getQuery();
+        if ($queryModifier !== null) {
+            $nonNullCountQuery = $queryModifier($nonNullCountQuery);
+        }
+        $nonNullCount = (int)$nonNullCountQuery->getSingleScalarResult();
+
+        $nullQuery = $nullQueryBuilder->getQuery();
+        if ($queryModifier !== null) {
+            $nullQuery = $queryModifier($nullQuery);
+        }
+        $nullExists = count($nullQuery->getScalarResult());
 
         return $nonNullCount + $nullExists;
     }

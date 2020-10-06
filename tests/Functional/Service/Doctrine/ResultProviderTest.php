@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Paysera\Pagination\Tests\Functional\Service\Doctrine;
 
 use DateTime;
+use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 use Paysera\Pagination\Entity\OrderingConfiguration;
 use Doctrine\ORM\EntityManager;
@@ -144,6 +145,28 @@ class ResultProviderTest extends DoctrineTestCase
         }, $result->getItems()));
 
         $this->assertEquals($expectedResult, $result);
+    }
+
+    public function testGetResultForQueryWithQueryModifier()
+    {
+        $entityManager = $this->createTestEntityManager();
+        $this->createTestData($entityManager);
+
+        $queryBuilder = $entityManager->createQueryBuilder()
+            ->select('p')
+            ->from('PaginationTest:ParentTestEntity', 'p')
+        ;
+
+        $configuredQuery = new ConfiguredQuery($queryBuilder);
+        $configuredQuery
+            ->setQueryModifier(static function (Query $query): Query {
+                $query->setMaxResults(1);
+                return $query;
+            })
+        ;
+
+        $result = $this->resultProvider->getResultForQuery($configuredQuery, new Pager());
+        $this->assertCount(1, $result->getItems());
     }
 
     public function getResultProvider()
