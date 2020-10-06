@@ -143,7 +143,7 @@ $configuredQuery = (new ConfiguredQuery($queryBuilder))
     ->setItemTransformer(function ($item) {
         // return transformed item if needed
     })
-    ->setQueryModifier(function (Query $query) {
+    ->setQueryModifier(function (Query $query): Query {
         $modifiedQuery = clone $query;
         // modify query (set query hints, for example)
         return $modifiedQuery;
