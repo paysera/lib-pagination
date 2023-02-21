@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## 1.2.0
 ### Added
 - `ConfiguredQuery` provides new methods: `setItemTransformer`, `getItemTransformer`.
-Accepts `callable` type. Receives result item - return values replaces received item in result.
+Accepts `callable` type. Receives result item - return value replaces received item in result.
 
 ## 1.1.0
 ### Added
