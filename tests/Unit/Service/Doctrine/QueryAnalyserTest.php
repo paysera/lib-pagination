@@ -6,6 +6,7 @@ namespace Paysera\Pagination\Tests\Unit\Service\Doctrine;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Expr\Andx;
 use Doctrine\ORM\QueryBuilder;
+use InvalidArgumentException;
 use Paysera\Pagination\Entity\Doctrine\ConfiguredQuery;
 use Paysera\Pagination\Entity\Pager;
 use Paysera\Pagination\Service\Doctrine\QueryAnalyser;
@@ -15,11 +16,10 @@ class QueryAnalyserTest extends TestCase
 {
     /**
      * @dataProvider providerForInvalidData
-     * @expectedException \InvalidArgumentException
-     * @param QueryBuilder $queryBuilder
      */
-    public function testAnalyseQueryWithInvalidData(QueryBuilder $queryBuilder)
+    public function testAnalyseQueryWithInvalidData(QueryBuilder $queryBuilder): void
     {
+        $this->expectException(InvalidArgumentException::class);
         $analyser = new QueryAnalyser();
 
         $configuredQuery = new ConfiguredQuery($queryBuilder);
@@ -28,7 +28,7 @@ class QueryAnalyserTest extends TestCase
         $analyser->analyseQuery($configuredQuery, $pager);
     }
 
-    public function providerForInvalidData()
+    public function providerForInvalidData(): array
     {
         return [
             'Without select part' => [
@@ -49,7 +49,7 @@ class QueryAnalyserTest extends TestCase
         ];
     }
 
-    private function createQueryBuilder()
+    private function createQueryBuilder(): QueryBuilder
     {
         /** @var EntityManagerInterface $entityManager */
         $entityManager = $this->createMock(EntityManagerInterface::class);

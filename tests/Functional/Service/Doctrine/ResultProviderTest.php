@@ -1,10 +1,17 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Paysera\Pagination\Tests\Functional\Service\Doctrine;
 
 use DateTime;
+use Doctrine\DBAL\Exception;
+use Doctrine\ORM\Exception\MissingMappingDriverImplementation;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\ORM\Tools\ToolsException;
+use Doctrine\Persistence\Mapping\MappingException;
 use Paysera\Pagination\Entity\OrderingConfiguration;
 use Doctrine\ORM\EntityManager;
 use Paysera\Pagination\Exception\InvalidGroupByException;
@@ -20,6 +27,7 @@ use Paysera\Pagination\Service\CursorBuilder;
 use Paysera\Pagination\Tests\Functional\Fixtures\ChildTestEntity;
 use Paysera\Pagination\Tests\Functional\Fixtures\DateTimeEntity;
 use Paysera\Pagination\Tests\Functional\Fixtures\ParentTestEntity;
+use ReflectionException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
 class ResultProviderTest extends DoctrineTestCase
@@ -29,7 +37,7 @@ class ResultProviderTest extends DoctrineTestCase
      */
     private $resultProvider;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -39,7 +47,14 @@ class ResultProviderTest extends DoctrineTestCase
         );
     }
 
-    private function createTestData(EntityManager $entityManager, int $groupEvery = 10)
+    /**
+     * @param EntityManager $entityManager
+     * @param int $groupEvery
+     * @return void
+     * @throws ORMException
+     * @throws OptimisticLockException
+     */
+    private function createTestData(EntityManager $entityManager, int $groupEvery = 10): void
     {
         for ($parentIndex = 0; $parentIndex < 30; $parentIndex++) {
             $parent = (new ParentTestEntity())->setName(sprintf('P%s', $parentIndex));
@@ -52,7 +67,17 @@ class ResultProviderTest extends DoctrineTestCase
         $entityManager->flush();
     }
 
-    public function testGetResultForQueryWithNewResources()
+    /**
+     * @return void
+     * @throws ORMException
+     * @throws OptimisticLockException
+     * @throws Exception
+     * @throws MissingMappingDriverImplementation
+     * @throws ToolsException
+     * @throws MappingException
+     * @throws ReflectionException
+     */
+    public function testGetResultForQueryWithNewResources(): void
     {
         $entityManager = $this->createTestEntityManager();
 
@@ -114,11 +139,23 @@ class ResultProviderTest extends DoctrineTestCase
      * @dataProvider getResultProvider
      * @param Result $expectedResult
      * @param Pager $pager
-     * @param bool $totalCountNeeded
-     * @param mixed $find
+     * @param bool|null $totalCountNeeded
+     * @param bool|null $find
+     * @return void
+     * @throws Exception
+     * @throws MappingException
+     * @throws MissingMappingDriverImplementation
+     * @throws ORMException
+     * @throws OptimisticLockException
+     * @throws ReflectionException
+     * @throws ToolsException
      */
-    public function testGetResultForQuery(Result $expectedResult, Pager $pager, $totalCountNeeded = false, $find = true)
-    {
+    public function testGetResultForQuery(
+        Result $expectedResult,
+        Pager $pager,
+        ?bool $totalCountNeeded = false,
+        ?bool $find = true
+    ) {
         $entityManager = $this->createTestEntityManager();
         $this->createTestData($entityManager);
 
@@ -146,7 +183,7 @@ class ResultProviderTest extends DoctrineTestCase
         $this->assertEquals($expectedResult, $result);
     }
 
-    public function getResultProvider()
+    public function getResultProvider(): array
     {
         return [
             'default' => [
@@ -359,8 +396,15 @@ class ResultProviderTest extends DoctrineTestCase
      * @dataProvider getResultProviderForSeveralLevelOrdering
      * @param Result $expectedResult
      * @param Pager $pager
+     * @return void
+     * @throws Exception
+     * @throws MappingException
+     * @throws MissingMappingDriverImplementation
+     * @throws ORMException
+     * @throws ReflectionException
+     * @throws ToolsException
      */
-    public function testGetResultForQueryWithSeveralLevelOrdering(Result $expectedResult, Pager $pager)
+    public function testGetResultForQueryWithSeveralLevelOrdering(Result $expectedResult, Pager $pager): void
     {
         $entityManager = $this->createTestEntityManager();
         $this->createHierarchicalData($entityManager);
@@ -386,7 +430,13 @@ class ResultProviderTest extends DoctrineTestCase
         $this->assertEquals($expectedResult, $result);
     }
 
-    private function createHierarchicalData(EntityManager $entityManager)
+    /**
+     * @param EntityManager $entityManager
+     * @return void
+     * @throws ORMException
+     * @throws OptimisticLockException
+     */
+    private function createHierarchicalData(EntityManager $entityManager): void
     {
         for ($parentIndex = 1; $parentIndex < 10; $parentIndex++) {
             $reverseIndex = 10 - $parentIndex;
@@ -403,7 +453,7 @@ class ResultProviderTest extends DoctrineTestCase
         $entityManager->flush();
     }
 
-    public function getResultProviderForSeveralLevelOrdering()
+    public function getResultProviderForSeveralLevelOrdering(): array
     {
         return [
             'name asc, parent_name asc, id asc' => [
@@ -523,8 +573,15 @@ class ResultProviderTest extends DoctrineTestCase
      * @dataProvider getResultProviderForDateTimeField
      * @param Result $expectedResult
      * @param Pager $pager
+     * @return void
+     * @throws Exception
+     * @throws MappingException
+     * @throws MissingMappingDriverImplementation
+     * @throws ORMException
+     * @throws ReflectionException
+     * @throws ToolsException
      */
-    public function testGetResultForQueryWithDateTimeField(Result $expectedResult, Pager $pager)
+    public function testGetResultForQueryWithDateTimeField(Result $expectedResult, Pager $pager): void
     {
         $entityManager = $this->createTestEntityManager();
         $this->createDateTimeRelatedData($entityManager);
@@ -547,7 +604,14 @@ class ResultProviderTest extends DoctrineTestCase
         $this->assertEquals($expectedResult, $result);
     }
 
-    private function createDateTimeRelatedData(EntityManager $entityManager)
+    /**
+     * @param EntityManager $entityManager
+     * @return void
+     * @throws ORMException
+     * @throws OptimisticLockException
+     * @throws \Exception
+     */
+    private function createDateTimeRelatedData(EntityManager $entityManager): void
     {
         for ($i = 0; $i < 30; $i++) {
             $entity1 = (new DateTimeEntity())->setCreatedAt(new DateTime(sprintf('2020-02-02 12:00:%s', $i)));
@@ -559,7 +623,7 @@ class ResultProviderTest extends DoctrineTestCase
         $entityManager->flush();
     }
 
-    public function getResultProviderForDateTimeField()
+    public function getResultProviderForDateTimeField(): array
     {
         return [
             'first page' => [
@@ -611,7 +675,17 @@ class ResultProviderTest extends DoctrineTestCase
         ];
     }
 
-    public function testGetResultForQueryWithCustomAccessor()
+    /**
+     * @return void
+     * @throws Exception
+     * @throws MappingException
+     * @throws MissingMappingDriverImplementation
+     * @throws ORMException
+     * @throws OptimisticLockException
+     * @throws ReflectionException
+     * @throws ToolsException
+     */
+    public function testGetResultForQueryWithCustomAccessor(): void
     {
         $entityManager = $this->createTestEntityManager();
         $this->createTestData($entityManager);
@@ -637,7 +711,17 @@ class ResultProviderTest extends DoctrineTestCase
         $this->assertSame('"prefix\\"1"', $result->getPreviousCursor());
     }
 
-    public function testGetResultForQueryWithInvalidOrder()
+    /**
+     * @return void
+     * @throws Exception
+     * @throws MappingException
+     * @throws MissingMappingDriverImplementation
+     * @throws ORMException
+     * @throws OptimisticLockException
+     * @throws ReflectionException
+     * @throws ToolsException
+     */
+    public function testGetResultForQueryWithInvalidOrder(): void
     {
         $entityManager = $this->createTestEntityManager();
         $this->createTestData($entityManager);
@@ -663,7 +747,17 @@ class ResultProviderTest extends DoctrineTestCase
         }
     }
 
-    public function testGetResultForQueryWithTooLargeOffset()
+    /**
+     * @return void
+     * @throws Exception
+     * @throws MappingException
+     * @throws MissingMappingDriverImplementation
+     * @throws ORMException
+     * @throws OptimisticLockException
+     * @throws ReflectionException
+     * @throws ToolsException
+     */
+    public function testGetResultForQueryWithTooLargeOffset(): void
     {
         $entityManager = $this->createTestEntityManager();
         $this->createTestData($entityManager);
@@ -690,10 +784,11 @@ class ResultProviderTest extends DoctrineTestCase
 
     /**
      * @dataProvider getResultProviderForGetTotalCountForQuery
-     * @param int $expectedResult
+     * @param $expectedResult
      * @param QueryBuilder $queryBuilder
+     * @return void
      */
-    public function testGetTotalCountForQuery($expectedResult, QueryBuilder $queryBuilder)
+    public function testGetTotalCountForQuery($expectedResult, QueryBuilder $queryBuilder): void
     {
         $configuredQuery = (new ConfiguredQuery($queryBuilder))->setTotalCountNeeded(false);
 
@@ -701,7 +796,17 @@ class ResultProviderTest extends DoctrineTestCase
         $this->assertSame($expectedResult, $result);
     }
 
-    public function testGetTotalCountForQueryThrowsExceptionWithMoreThanOneGroupByArgument()
+    /**
+     * @return void
+     * @throws Exception
+     * @throws MappingException
+     * @throws MissingMappingDriverImplementation
+     * @throws ORMException
+     * @throws OptimisticLockException
+     * @throws ReflectionException
+     * @throws ToolsException
+     */
+    public function testGetTotalCountForQueryThrowsExceptionWithMoreThanOneGroupByArgument(): void
     {
         $entityManager = $this->createTestEntityManager();
         $this->createTestData($entityManager);
@@ -717,7 +822,17 @@ class ResultProviderTest extends DoctrineTestCase
         $this->resultProvider->getTotalCountForQuery($configuredQuery);
     }
 
-    public function testGetTotalCountForQueryThrowsExceptionWithMoreThanOneGroupByExpression()
+    /**
+     * @return void
+     * @throws Exception
+     * @throws MappingException
+     * @throws MissingMappingDriverImplementation
+     * @throws ORMException
+     * @throws OptimisticLockException
+     * @throws ReflectionException
+     * @throws ToolsException
+     */
+    public function testGetTotalCountForQueryThrowsExceptionWithMoreThanOneGroupByExpression(): void
     {
         $entityManager = $this->createTestEntityManager();
         $this->createTestData($entityManager);
@@ -734,7 +849,17 @@ class ResultProviderTest extends DoctrineTestCase
         $this->resultProvider->getTotalCountForQuery($configuredQuery);
     }
 
-    public function testGetTotalCountForQueryGetsCorrectCountWhenNoNullsAreInResult()
+    /**
+     * @return void
+     * @throws Exception
+     * @throws MappingException
+     * @throws MissingMappingDriverImplementation
+     * @throws ORMException
+     * @throws OptimisticLockException
+     * @throws ReflectionException
+     * @throws ToolsException
+     */
+    public function testGetTotalCountForQueryGetsCorrectCountWhenNoNullsAreInResult(): void
     {
         $entityManager = $this->createTestEntityManager();
         $this->createTestData($entityManager, 1);
@@ -748,7 +873,17 @@ class ResultProviderTest extends DoctrineTestCase
         $this->assertSame(30, $this->resultProvider->getTotalCountForQuery($configuredQuery));
     }
 
-    public function getResultProviderForGetTotalCountForQuery()
+    /**
+     * @return array[]
+     * @throws Exception
+     * @throws MappingException
+     * @throws MissingMappingDriverImplementation
+     * @throws ORMException
+     * @throws OptimisticLockException
+     * @throws ReflectionException
+     * @throws ToolsException
+     */
+    public function getResultProviderForGetTotalCountForQuery(): array
     {
         $entityManager = $this->createTestEntityManager();
         $this->createTestData($entityManager);
