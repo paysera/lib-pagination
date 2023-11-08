@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Paysera\Pagination\Service\Doctrine;
 
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\Query\Expr\Andx;
 use Doctrine\ORM\Query\Expr\Orx;
@@ -10,7 +12,6 @@ use Doctrine\ORM\Query\Expr\GroupBy;
 use Doctrine\ORM\Query\Expr\Comparison;
 use Doctrine\ORM\QueryBuilder;
 use Paysera\Pagination\Entity\Doctrine\AnalysedQuery;
-use Paysera\Pagination\Entity\OrderingConfiguration;
 use Paysera\Pagination\Entity\Doctrine\ConfiguredQuery;
 use Paysera\Pagination\Entity\Pager;
 use Paysera\Pagination\Entity\Result;
@@ -28,6 +29,13 @@ class ResultProvider
         $this->cursorBuilder = $cursorBuilder;
     }
 
+    /**
+     * @param ConfiguredQuery $configuredQuery
+     * @param Pager $pager
+     * @return Result
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     public function getResultForQuery(ConfiguredQuery $configuredQuery, Pager $pager): Result
     {
         $analysedQuery = $this->queryAnalyser->analyseQuery($configuredQuery, $pager);
@@ -49,6 +57,12 @@ class ResultProvider
         return $result;
     }
 
+    /**
+     * @param ConfiguredQuery $configuredQuery
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     public function getTotalCountForQuery(ConfiguredQuery $configuredQuery): int
     {
         $analysedQuery = $this->queryAnalyser->analyseQueryWithoutPager($configuredQuery);
@@ -89,7 +103,7 @@ class ResultProvider
         return $items;
     }
 
-    private function pageQueryBuilder(AnalysedQuery $analysedQuery, Pager $pager)
+    private function pageQueryBuilder(AnalysedQuery $analysedQuery, Pager $pager): QueryBuilder
     {
         $queryBuilder = $analysedQuery->cloneQueryBuilder();
 
@@ -115,11 +129,7 @@ class ResultProvider
         return $queryBuilder;
     }
 
-    /**
-     * @param QueryBuilder $queryBuilder
-     * @param array|OrderingConfiguration[] $orderingConfigurations
-     */
-    private function applyOrdering(QueryBuilder $queryBuilder, array $orderingConfigurations)
+    private function applyOrdering(QueryBuilder $queryBuilder, array $orderingConfigurations): void
     {
         foreach ($orderingConfigurations as $orderingConfiguration) {
             $queryBuilder->addOrderBy(
@@ -129,39 +139,27 @@ class ResultProvider
         }
     }
 
-    private function applyOffset(QueryBuilder $queryBuilder, int $offset)
+    private function applyOffset(QueryBuilder $queryBuilder, int $offset): void
     {
         $queryBuilder->setFirstResult($offset);
     }
 
-    /**
-     * @param QueryBuilder $queryBuilder
-     * @param string $after
-     * @param AnalysedQuery $analysedQuery
-     */
-    private function applyAfter(QueryBuilder $queryBuilder, string $after, AnalysedQuery $analysedQuery)
+    private function applyAfter(QueryBuilder $queryBuilder, string $after, AnalysedQuery $analysedQuery): void
     {
         $this->applyCursor($queryBuilder, $after, $analysedQuery, false);
     }
 
-    /**
-     * @param QueryBuilder $queryBuilder
-     * @param string $after
-     * @param AnalysedQuery $analysedQuery
-     */
-    private function applyBefore(QueryBuilder $queryBuilder, string $after, AnalysedQuery $analysedQuery)
+    private function applyBefore(QueryBuilder $queryBuilder, string $after, AnalysedQuery $analysedQuery): void
     {
         $this->applyCursor($queryBuilder, $after, $analysedQuery, true);
     }
 
-    /**
-     * @param QueryBuilder $queryBuilder
-     * @param string $cursor
-     * @param AnalysedQuery $analysedQuery
-     * @param bool $invert
-     */
-    private function applyCursor(QueryBuilder $queryBuilder, string $cursor, AnalysedQuery $analysedQuery, bool $invert)
-    {
+    private function applyCursor(
+        QueryBuilder $queryBuilder,
+        string $cursor,
+        AnalysedQuery $analysedQuery,
+        bool $invert
+    ): void {
         $orderingConfigurations = $analysedQuery->getOrderingConfigurations();
         $parsedCursor = $this->cursorBuilder->parseCursor($cursor, count($orderingConfigurations));
 
@@ -265,7 +263,11 @@ class ResultProvider
             return $result->setHasPrevious(false);
         }
 
-        $lastItemCursor = $this->cursorBuilder->getCursorFromItem($items[0], $modifiedAnalysedQuery->getOrderingConfigurations());
+        $lastItemCursor = $this->cursorBuilder->getCursorFromItem(
+            $items[0],
+            $modifiedAnalysedQuery->getOrderingConfigurations()
+        );
+
         return $result
             ->setHasPrevious(true)
             ->setPreviousCursor($this->cursorBuilder->buildCursorWithIncludedItem($lastItemCursor))
@@ -273,10 +275,6 @@ class ResultProvider
         ;
     }
 
-    /**
-     * @param array|OrderingConfiguration[] $orderingConfigurations
-     * @return array|OrderingConfiguration[]
-     */
     private function reverseOrderingDirection(array $orderingConfigurations): array
     {
         $reversedOrderingConfigurations = [];
@@ -288,7 +286,7 @@ class ResultProvider
         return $reversedOrderingConfigurations;
     }
 
-    private function existsBeforeCursor(string $previousCursor, AnalysedQuery $analysedQuery)
+    private function existsBeforeCursor(string $previousCursor, AnalysedQuery $analysedQuery): bool
     {
         $nextPager = (new Pager())
             ->setBefore($previousCursor)
@@ -298,7 +296,7 @@ class ResultProvider
         return count($this->findItems($analysedQuery, $nextPager)) > 0;
     }
 
-    private function existsAfterCursor(string $nextCursor, AnalysedQuery $analysedQuery)
+    private function existsAfterCursor(string $nextCursor, AnalysedQuery $analysedQuery): bool
     {
         $nextPager = (new Pager())
             ->setAfter($nextCursor)
@@ -308,7 +306,7 @@ class ResultProvider
         return count($this->findItems($analysedQuery, $nextPager)) > 0;
     }
 
-    private function calculateTotalCount(Pager $filter, int $resultCount)
+    private function calculateTotalCount(Pager $filter, int $resultCount): ?int
     {
         if (
             $filter->getOffset() !== null
@@ -321,6 +319,12 @@ class ResultProvider
         return null;
     }
 
+    /**
+     * @param AnalysedQuery $analysedQuery
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     private function findCount(AnalysedQuery $analysedQuery): int
     {
         $countQueryBuilder = $analysedQuery->cloneQueryBuilder();
@@ -334,6 +338,13 @@ class ResultProvider
         return (int)$countQueryBuilder->getQuery()->getSingleScalarResult();
     }
 
+    /**
+     * @param string $groupByColumn
+     * @param AnalysedQuery $analysedQuery
+     * @return int
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     */
     private function findCountWithGroupBy(string $groupByColumn, AnalysedQuery $analysedQuery): int
     {
         $countQueryBuilder = $analysedQuery->cloneQueryBuilder();
@@ -355,11 +366,7 @@ class ResultProvider
         return $nonNullCount + $nullExists;
     }
 
-    /**
-     * @param QueryBuilder $queryBuilder
-     * @return string|null
-     */
-    private function getSingleValidGroupByColumn(QueryBuilder $queryBuilder)
+    private function getSingleValidGroupByColumn(QueryBuilder $queryBuilder): ?string
     {
         /** @var GroupBy[] $groupByParts */
         $groupByParts = $queryBuilder->getDQLPart('groupBy');

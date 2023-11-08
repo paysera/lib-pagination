@@ -8,7 +8,6 @@ use Doctrine\ORM\QueryBuilder;
 use Paysera\Pagination\Entity\Doctrine\AnalysedQuery;
 use Paysera\Pagination\Entity\OrderingConfiguration;
 use Paysera\Pagination\Entity\Doctrine\ConfiguredQuery;
-use Paysera\Pagination\Entity\OrderingPair;
 use Paysera\Pagination\Entity\Pager;
 use InvalidArgumentException;
 use Paysera\Pagination\Exception\TooLargeOffsetException;
@@ -23,7 +22,7 @@ class QueryAnalyser
      * @param Pager $pager
      * @return AnalysedQuery
      */
-    public function analyseQuery(ConfiguredQuery $configuredQuery, Pager $pager)
+    public function analyseQuery(ConfiguredQuery $configuredQuery, Pager $pager): AnalysedQuery
     {
         $analysedQuery = $this->analyseQueryWithoutPager($configuredQuery);
 
@@ -51,7 +50,7 @@ class QueryAnalyser
      * @param ConfiguredQuery $configuredQuery
      * @return AnalysedQuery
      */
-    public function analyseQueryWithoutPager(ConfiguredQuery $configuredQuery)
+    public function analyseQueryWithoutPager(ConfiguredQuery $configuredQuery): AnalysedQuery
     {
         $queryBuilder = $configuredQuery->getQueryBuilder();
         $rootAlias = $this->getRootAlias($queryBuilder);
@@ -65,11 +64,7 @@ class QueryAnalyser
         ;
     }
 
-    /**
-     * @param QueryBuilder $queryBuilder
-     * @return null|string
-     */
-    private function getRootAlias(QueryBuilder $queryBuilder)
+    private function getRootAlias(QueryBuilder $queryBuilder): ?string
     {
         $selectDqlParts = $queryBuilder->getDQLPart('select');
         if (!isset($selectDqlParts[0])) {
@@ -93,14 +88,11 @@ class QueryAnalyser
         return $selectParts[0];
     }
 
-    /**
-     * @param ConfiguredQuery $configuredQuery
-     * @param string $rootAlias
-     * @param array|OrderingPair[] $orderingPairs
-     * @return array|OrderingConfiguration[]
-     */
-    private function mapToOrderingConfigurations(ConfiguredQuery $configuredQuery, string $rootAlias, array $orderingPairs)
-    {
+    private function mapToOrderingConfigurations(
+        ConfiguredQuery $configuredQuery,
+        string $rootAlias,
+        array $orderingPairs
+    ): array {
         $orderingConfigurations = [];
         $idIncluded = false;
         $defaultAscending = null;
