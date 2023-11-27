@@ -20,7 +20,7 @@ For example, to take 3000th page, consisting of 100 items, using offset you woul
 SELECT *
 FROM items
 WHERE field = 'some value'
-ORDER BY created_at DESC
+ORDER BY created_at DESC, id DESC
 LIMIT 100 OFFSET 29900
 ```
 
@@ -32,7 +32,7 @@ If using cursor based pagination, the resulting query can look like this:
 SELECT *
 FROM items
 WHERE field = 'some value'
-AND created_at <= '2018-01-01 00:01:02' AND id < 12345
+AND (created_at, id) < ('2018-01-01 00:01:02', 12345)
 ORDER BY created_at DESC, id DESC
 LIMIT 100
 ```
