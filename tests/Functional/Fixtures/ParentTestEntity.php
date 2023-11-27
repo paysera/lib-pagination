@@ -51,16 +51,26 @@ class ParentTestEntity
         $this->children = new ArrayCollection();
     }
 
-    public function getId(): ?int
+    /**
+     * @return int|null
+     */
+    public function getId()
     {
         return $this->id;
     }
 
-    public function getName(): ?string
+    /**
+     * @return string|null
+     */
+    public function getName()
     {
         return $this->name;
     }
 
+    /**
+     * @param string $name
+     * @return $this
+     */
     public function setName(string $name): self
     {
         $this->name = $name;
@@ -86,7 +96,7 @@ class ParentTestEntity
      * @param Collection|ChildTestEntity[] $children
      * @return $this
      */
-    public function setChildren($children): self
+    public function setChildren($children)
     {
         $this->children->clear();
         foreach ($children as $child) {
@@ -96,11 +106,19 @@ class ParentTestEntity
         return $this;
     }
 
-    public function getGroupKey(): ?string
+    /**
+     * @return string|null
+     */
+    public function getGroupKey()
     {
         return $this->groupKey;
     }
 
+    /**
+     * @param string|null $groupKey
+     *
+     * @return $this
+     */
     public function setGroupKey(string $groupKey): self
     {
         $this->groupKey = $groupKey;

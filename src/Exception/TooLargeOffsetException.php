@@ -5,13 +5,7 @@ namespace Paysera\Pagination\Exception;
 
 class TooLargeOffsetException extends PaginationException
 {
-    /**
-     * @var int
-     */
     private $maximumOffset;
-    /**
-     * @var int
-     */
     private $givenOffset;
 
     public function __construct(int $maximumOffset, int $givenOffset)

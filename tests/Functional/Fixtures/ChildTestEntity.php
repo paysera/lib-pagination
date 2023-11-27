@@ -39,27 +39,44 @@ class ChildTestEntity
      */
     private $parent;
 
-    public function getId(): ?int
+    /**
+     * @return int|null
+     */
+    public function getId()
     {
         return $this->id;
     }
 
-    public function getName(): ?string
+    /**
+     * @return string|null
+     */
+    public function getName()
     {
         return $this->name;
     }
 
+    /**
+     * @param string $name
+     * @return $this
+     */
     public function setName(string $name): self
     {
         $this->name = $name;
         return $this;
     }
 
-    public function getParent(): ?ParentTestEntity
+    /**
+     * @return ParentTestEntity
+     */
+    public function getParent(): ParentTestEntity
     {
         return $this->parent;
     }
 
+    /**
+     * @param ParentTestEntity $parent
+     * @return $this
+     */
     public function setParent(ParentTestEntity $parent): self
     {
         $this->parent = $parent;

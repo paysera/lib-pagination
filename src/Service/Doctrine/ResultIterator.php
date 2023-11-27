@@ -55,7 +55,7 @@ class ResultIterator
         }
     }
 
-    protected function handleCycleEnd(): void
+    protected function handleCycleEnd()
     {
         // intentionally empty – override in extended classes
     }

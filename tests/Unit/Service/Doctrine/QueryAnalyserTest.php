@@ -16,8 +16,9 @@ class QueryAnalyserTest extends TestCase
 {
     /**
      * @dataProvider providerForInvalidData
+     * @param QueryBuilder $queryBuilder
      */
-    public function testAnalyseQueryWithInvalidData(QueryBuilder $queryBuilder): void
+    public function testAnalyseQueryWithInvalidData(QueryBuilder $queryBuilder)
     {
         $this->expectException(InvalidArgumentException::class);
         $analyser = new QueryAnalyser();
@@ -49,7 +50,7 @@ class QueryAnalyserTest extends TestCase
         ];
     }
 
-    private function createQueryBuilder(): QueryBuilder
+    private function createQueryBuilder()
     {
         /** @var EntityManagerInterface $entityManager */
         $entityManager = $this->createMock(EntityManagerInterface::class);

@@ -20,7 +20,7 @@ class FlushingResultIterator extends ResultIterator
         $this->entityManager = $entityManager;
     }
 
-    protected function handleCycleEnd(): void
+    protected function handleCycleEnd()
     {
         $this->entityManager->flush();
         $this->entityManager->clear();

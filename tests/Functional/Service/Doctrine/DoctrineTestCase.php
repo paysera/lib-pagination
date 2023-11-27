@@ -4,47 +4,28 @@ declare(strict_types=1);
 namespace Paysera\Pagination\Tests\Functional\Service\Doctrine;
 
 use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\Exception;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Exception\MissingMappingDriverImplementation;
-use Doctrine\ORM\Exception\ORMException;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\Tools\SchemaTool;
-use Doctrine\ORM\Tools\ToolsException;
-use Doctrine\Persistence\Mapping\MappingException;
 use Paysera\Pagination\Tests\Functional\Fixtures\ChildTestEntity;
 use Paysera\Pagination\Tests\Functional\Fixtures\DateTimeEntity;
 use Paysera\Pagination\Tests\Functional\Fixtures\ParentTestEntity;
 use PHPUnit\Framework\TestCase;
 use Doctrine\ORM\Configuration;
-use ReflectionException;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 abstract class DoctrineTestCase extends TestCase
 {
-    /**
-     * @return EntityManager
-     * @throws Exception
-     * @throws MissingMappingDriverImplementation
-     * @throws ORMException
-     * @throws ToolsException
-     * @throws MappingException
-     * @throws ReflectionException
-     */
     protected function createTestEntityManager(): EntityManager
     {
         if (!extension_loaded('pdo_sqlite')) {
             $this->markTestSkipped('Extension pdo_sqlite is required.');
         }
 
-        $entityManager = new EntityManager(
-            DriverManager::getConnection([
-                'driver' => 'pdo_sqlite',
-                'memory' => true,
-            ]),
-            $this->createTestConfiguration()
-        );
+        $entityManager = EntityManager::create([
+            'driver' => 'pdo_sqlite',
+            'memory' => true,
+        ], $this->createTestConfiguration());
 
         $schemaTool = new SchemaTool($entityManager);
         $metadataFactory = $entityManager->getMetadataFactory();

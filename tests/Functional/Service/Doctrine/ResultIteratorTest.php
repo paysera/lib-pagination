@@ -3,12 +3,6 @@ declare(strict_types=1);
 
 namespace Paysera\Pagination\Tests\Functional\Service\Doctrine;
 
-use Doctrine\DBAL\Exception;
-use Doctrine\ORM\Exception\MissingMappingDriverImplementation;
-use Doctrine\ORM\Exception\ORMException;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\Tools\ToolsException;
-use Doctrine\Persistence\Mapping\MappingException;
 use Paysera\Pagination\Entity\OrderingConfiguration;
 use Doctrine\ORM\EntityManager;
 use Paysera\Pagination\Service\Doctrine\QueryAnalyser;
@@ -21,7 +15,6 @@ use Paysera\Pagination\Service\CursorBuilder;
 use Paysera\Pagination\Tests\Functional\Fixtures\ChildTestEntity;
 use Paysera\Pagination\Tests\Functional\Fixtures\ParentTestEntity;
 use Paysera\Pagination\Tests\Functional\Fixtures\TestLogger;
-use ReflectionException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
 class ResultIteratorTest extends DoctrineTestCase
@@ -52,13 +45,7 @@ class ResultIteratorTest extends DoctrineTestCase
         );
     }
 
-    /**
-     * @param EntityManager $entityManager
-     * @return void
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
-    private function createTestData(EntityManager $entityManager): void
+    private function createTestData(EntityManager $entityManager)
     {
         for ($parentIndex = 0; $parentIndex < 10; $parentIndex++) {
             for ($i = 0; $i < 3; $i++) {
@@ -74,17 +61,7 @@ class ResultIteratorTest extends DoctrineTestCase
         $entityManager->flush();
     }
 
-    /**
-     * @return void
-     * @throws ORMException
-     * @throws OptimisticLockException
-     * @throws Exception
-     * @throws MissingMappingDriverImplementation
-     * @throws ToolsException
-     * @throws MappingException
-     * @throws ReflectionException
-     */
-    public function testIterateWithStartPager(): void
+    public function testIterateWithStartPager()
     {
         $entityManager = $this->createTestEntityManager();
         $this->createTestData($entityManager);
@@ -118,17 +95,7 @@ class ResultIteratorTest extends DoctrineTestCase
         }));
     }
 
-    /**
-     * @return void
-     * @throws Exception
-     * @throws MappingException
-     * @throws MissingMappingDriverImplementation
-     * @throws ORMException
-     * @throws OptimisticLockException
-     * @throws ReflectionException
-     * @throws ToolsException
-     */
-    public function testIterate(): void
+    public function testIterate()
     {
         $entityManager = $this->createTestEntityManager();
         $this->createTestData($entityManager);
@@ -154,17 +121,7 @@ class ResultIteratorTest extends DoctrineTestCase
         }));
     }
 
-    /**
-     * @return void
-     * @throws Exception
-     * @throws MappingException
-     * @throws MissingMappingDriverImplementation
-     * @throws ORMException
-     * @throws OptimisticLockException
-     * @throws ReflectionException
-     * @throws ToolsException
-     */
-    public function testTransformResultItems(): void
+    public function testTransformResultItems()
     {
         $entityManager = $this->createTestEntityManager();
         $this->createTestData($entityManager);
@@ -179,12 +136,12 @@ class ResultIteratorTest extends DoctrineTestCase
             return $item->getName();
         });
         $resultArray = iterator_to_array($this->resultIterator->iterate($configuredQuery));
-        [$resultItem] = $resultArray;
+        list($resultItem) = $resultArray;
         $this->assertEquals('P9', $resultItem);
 
         $configuredQuery = new ConfiguredQuery($queryBuilder);
         $resultArray = iterator_to_array($this->resultIterator->iterate($configuredQuery));
-        [$resultItem] = $resultArray;
+        list($resultItem) = $resultArray;
         $this->assertEquals('P9', $resultItem->getName());
     }
 }

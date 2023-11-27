@@ -56,7 +56,7 @@ class CursorBuilder implements CursorBuilderInterface
 
     /**
      * @param mixed $item
-     * @param array|OrderingConfiguration[] $orderingConfigurations
+     * @param array|\Paysera\Pagination\Entity\OrderingConfiguration[] $orderingConfigurations
      * @return string
      */
     public function getCursorFromItem($item, array $orderingConfigurations): string

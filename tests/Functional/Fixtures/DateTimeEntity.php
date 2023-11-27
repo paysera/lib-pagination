@@ -30,16 +30,26 @@ class DateTimeEntity
      */
     private $createdAt;
 
-    public function getId(): ?int
+    /**
+     * @return int|null
+     */
+    public function getId()
     {
         return $this->id;
     }
 
-    public function getCreatedAt(): ?DateTime
+    /**
+     * @return DateTime|null
+     */
+    public function getCreatedAt()
     {
         return $this->createdAt;
     }
 
+    /**
+     * @param DateTime $createdAt
+     * @return $this
+     */
     public function setCreatedAt(DateTime $createdAt): self
     {
         $this->createdAt = $createdAt;
