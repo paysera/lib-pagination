@@ -4,7 +4,13 @@ declare(strict_types=1);
 namespace Paysera\Pagination\Tests\Functional\Service\Doctrine;
 
 use DateTime;
+use Doctrine\DBAL\Exception;
+use Doctrine\ORM\Exception\MissingMappingDriverImplementation;
+use Doctrine\ORM\Exception\ORMException;
+use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\ORM\Tools\ToolsException;
+use Doctrine\Persistence\Mapping\MappingException;
 use Paysera\Pagination\Entity\OrderingConfiguration;
 use Doctrine\ORM\EntityManager;
 use Paysera\Pagination\Exception\InvalidGroupByException;
@@ -20,6 +26,7 @@ use Paysera\Pagination\Service\CursorBuilder;
 use Paysera\Pagination\Tests\Functional\Fixtures\ChildTestEntity;
 use Paysera\Pagination\Tests\Functional\Fixtures\DateTimeEntity;
 use Paysera\Pagination\Tests\Functional\Fixtures\ParentTestEntity;
+use ReflectionException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
 class ResultProviderTest extends DoctrineTestCase
@@ -29,7 +36,7 @@ class ResultProviderTest extends DoctrineTestCase
      */
     private $resultProvider;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -146,7 +153,7 @@ class ResultProviderTest extends DoctrineTestCase
         $this->assertEquals($expectedResult, $result);
     }
 
-    public function getResultProvider()
+    public function getResultProvider(): array
     {
         return [
             'default' => [
@@ -403,7 +410,7 @@ class ResultProviderTest extends DoctrineTestCase
         $entityManager->flush();
     }
 
-    public function getResultProviderForSeveralLevelOrdering()
+    public function getResultProviderForSeveralLevelOrdering(): array
     {
         return [
             'name asc, parent_name asc, id asc' => [
@@ -559,7 +566,7 @@ class ResultProviderTest extends DoctrineTestCase
         $entityManager->flush();
     }
 
-    public function getResultProviderForDateTimeField()
+    public function getResultProviderForDateTimeField(): array
     {
         return [
             'first page' => [
@@ -748,7 +755,7 @@ class ResultProviderTest extends DoctrineTestCase
         $this->assertSame(30, $this->resultProvider->getTotalCountForQuery($configuredQuery));
     }
 
-    public function getResultProviderForGetTotalCountForQuery()
+    public function getResultProviderForGetTotalCountForQuery(): array
     {
         $entityManager = $this->createTestEntityManager();
         $this->createTestData($entityManager);
