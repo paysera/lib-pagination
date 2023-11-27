@@ -8,8 +8,8 @@
         <include>
             <directory>./src</directory>
         </include>
-
     </coverage>
+
     <testsuites>
         <testsuite name="Project Test Suite">
             <directory>tests</directory>
