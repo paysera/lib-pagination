@@ -1,18 +1,15 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Paysera\Pagination\Tests\Functional\Service\Doctrine;
 
-use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
+use Doctrine\ORM\Mapping\Driver\SimplifiedXmlDriver;
+use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
-use Paysera\Pagination\Tests\Functional\Fixtures\ChildTestEntity;
-use Paysera\Pagination\Tests\Functional\Fixtures\DateTimeEntity;
-use Paysera\Pagination\Tests\Functional\Fixtures\ParentTestEntity;
 use PHPUnit\Framework\TestCase;
-use Doctrine\ORM\Configuration;
-use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 abstract class DoctrineTestCase extends TestCase
 {
@@ -22,34 +19,34 @@ abstract class DoctrineTestCase extends TestCase
             $this->markTestSkipped('Extension pdo_sqlite is required.');
         }
 
-        $entityManager = EntityManager::create([
-            'driver' => 'pdo_sqlite',
-            'memory' => true,
-        ], $this->createTestConfiguration());
+        $paths = [
+            __DIR__ . '/../../Resources/config/doctrine' => 'Paysera\Pagination\Tests\Functional\Fixtures',
+        ];
+
+        $xmlDriver = new SimplifiedXmlDriver($paths, '.orm.xml');
+
+        $config = ORMSetup::createConfiguration(false, sys_get_temp_dir());
+        $config->setMetadataDriverImpl($xmlDriver);
+
+        $connection = DriverManager::getConnection(
+            [
+                'driver' => 'pdo_sqlite',
+                'memory' => true,
+            ],
+            $config
+        );
+
+        $entityManager = new EntityManager($connection, $config);
+
+        $metadataFactory = $entityManager->getMetadataFactory();
+        $metadataFactory->getAllMetadata();
+
+        $metadata = $metadataFactory->getLoadedMetadata();
 
         $schemaTool = new SchemaTool($entityManager);
-        $metadataFactory = $entityManager->getMetadataFactory();
-        $metadataFactory->getMetadataFor(ParentTestEntity::class);
-        $metadataFactory->getMetadataFor(ChildTestEntity::class);
-        $metadataFactory->getMetadataFor(DateTimeEntity::class);
-        $metadata = $metadataFactory->getLoadedMetadata();
         $schemaTool->dropSchema($metadata);
         $schemaTool->createSchema($metadata);
 
         return $entityManager;
-    }
-
-    protected function createTestConfiguration(): Configuration
-    {
-        $config = new Configuration();
-        $config->setEntityNamespaces(['PaginationTest' => 'Paysera\Pagination\Tests\Functional\Fixtures']);
-        $config->setAutoGenerateProxyClasses(true);
-        $config->setProxyDir(sys_get_temp_dir());
-        $config->setProxyNamespace('PaginationTest\Doctrine');
-        $config->setMetadataDriverImpl(new AnnotationDriver(new AnnotationReader()));
-        $config->setQueryCache(new ArrayAdapter());
-        $config->setMetadataCache(new ArrayAdapter());
-
-        return $config;
     }
 }

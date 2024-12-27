@@ -68,7 +68,7 @@ class ResultIteratorTest extends DoctrineTestCase
 
         $queryBuilder = $entityManager->createQueryBuilder()
             ->select('p')
-            ->from('PaginationTest:ParentTestEntity', 'p')
+            ->from(ParentTestEntity::class, 'p')
             ->join('p.children', 'c')
         ;
 
@@ -102,7 +102,7 @@ class ResultIteratorTest extends DoctrineTestCase
 
         $queryBuilder = $entityManager->createQueryBuilder()
             ->select('p')
-            ->from('PaginationTest:ParentTestEntity', 'p')
+            ->from(ParentTestEntity::class, 'p')
         ;
 
         $configuredQuery = new ConfiguredQuery($queryBuilder);
@@ -128,7 +128,7 @@ class ResultIteratorTest extends DoctrineTestCase
 
         $queryBuilder = $entityManager->createQueryBuilder()
             ->select('p')
-            ->from('PaginationTest:ParentTestEntity', 'p')
+            ->from(ParentTestEntity::class, 'p')
         ;
 
         $configuredQuery = new ConfiguredQuery($queryBuilder);
