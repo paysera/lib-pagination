@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                                      https://www.doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+    <entity name="Paysera\Pagination\Tests\Functional\Fixtures\ParentTestEntity" table="parent_test_entity">
+        <id name="id" type="integer" column="id">
+            <generator strategy="AUTO"/>
+        </id>
+
+        <field name="name" type="string" column="name"/>
+        <field name="groupKey" type="string" column="group_key" nullable="true"/>
+
+        <one-to-many field="children" mapped-by="parent"
+                     target-entity="Paysera\Pagination\Tests\Functional\Fixtures\ChildTestEntity">
+        </one-to-many>
+    </entity>
+</doctrine-mapping>

@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+permissions:
+  contents: read
+
+jobs:
+  phpunit:
+    name: Run tests on ${{ matrix.php-version }} with ${{ matrix.dependency-versions }} dependencies
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version:
+          - '7.1'
+          - '7.2'
+          - '7.3'
+          - '7.4'
+          - '8.0'
+          - '8.1'
+          - '8.2'
+          - '8.3'
+          - '8.4'
+        dependency-versions:
+          - 'highest'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@v2
+        with:
+          dependency-versions: ${{ matrix.dependency-versions }}
+
+      - name: Run tests
+        run: ./bin/phpunit

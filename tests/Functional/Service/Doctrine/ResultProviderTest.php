@@ -65,7 +65,7 @@ class ResultProviderTest extends DoctrineTestCase
 
         $queryBuilder = $entityManager->createQueryBuilder()
             ->select('p')
-            ->from('PaginationTest:ParentTestEntity', 'p')
+            ->from(ParentTestEntity::class, 'p')
         ;
 
         $configuredQuery = new ConfiguredQuery($queryBuilder);
@@ -131,7 +131,7 @@ class ResultProviderTest extends DoctrineTestCase
 
         $queryBuilder = $entityManager->createQueryBuilder()
             ->select('p')
-            ->from('PaginationTest:ParentTestEntity', 'p')
+            ->from(ParentTestEntity::class, 'p')
         ;
         if (!$find) {
             $queryBuilder->andWhere('p.name = :name')->setParameter('name', 'non-existing');
@@ -374,7 +374,7 @@ class ResultProviderTest extends DoctrineTestCase
 
         $queryBuilder = $entityManager->createQueryBuilder()
             ->select('c')
-            ->from('PaginationTest:ChildTestEntity', 'c')
+            ->from(ChildTestEntity::class, 'c')
             ->join('c.parent', 'p')
         ;
 
@@ -538,7 +538,7 @@ class ResultProviderTest extends DoctrineTestCase
 
         $queryBuilder = $entityManager->createQueryBuilder()
             ->select('d')
-            ->from('PaginationTest:DateTimeEntity', 'd')
+            ->from(DateTimeEntity::class, 'd')
         ;
 
         $configuredQuery = (new ConfiguredQuery($queryBuilder))->addOrderingConfiguration(
@@ -625,7 +625,7 @@ class ResultProviderTest extends DoctrineTestCase
 
         $queryBuilder = $entityManager->createQueryBuilder()
             ->select('p')
-            ->from('PaginationTest:ParentTestEntity', 'p')
+            ->from(ParentTestEntity::class, 'p')
         ;
 
         $configuredQuery = (new ConfiguredQuery($queryBuilder))->addOrderingConfigurations([
@@ -651,7 +651,7 @@ class ResultProviderTest extends DoctrineTestCase
 
         $queryBuilder = $entityManager->createQueryBuilder()
             ->select('p')
-            ->from('PaginationTest:ParentTestEntity', 'p')
+            ->from(ParentTestEntity::class, 'p')
         ;
 
         $configuredQuery = (new ConfiguredQuery($queryBuilder))->addOrderingConfigurations([
@@ -677,7 +677,7 @@ class ResultProviderTest extends DoctrineTestCase
 
         $queryBuilder = $entityManager->createQueryBuilder()
             ->select('p')
-            ->from('PaginationTest:ParentTestEntity', 'p')
+            ->from(ParentTestEntity::class, 'p')
         ;
 
         $configuredQuery = (new ConfiguredQuery($queryBuilder))->setMaximumOffset(10);
@@ -714,7 +714,7 @@ class ResultProviderTest extends DoctrineTestCase
         $this->createTestData($entityManager);
         $queryBuilder = $entityManager->createQueryBuilder()
             ->select('p')
-            ->from('PaginationTest:ParentTestEntity', 'p')
+            ->from(ParentTestEntity::class, 'p')
             ->groupBy('p.groupKey', 'p.name')
         ;
 
@@ -730,7 +730,7 @@ class ResultProviderTest extends DoctrineTestCase
         $this->createTestData($entityManager);
         $queryBuilder = $entityManager->createQueryBuilder()
             ->select('p')
-            ->from('PaginationTest:ParentTestEntity', 'p')
+            ->from(ParentTestEntity::class, 'p')
             ->groupBy('p.groupKey')
             ->addGroupBy('p.name')
         ;
@@ -747,7 +747,7 @@ class ResultProviderTest extends DoctrineTestCase
         $this->createTestData($entityManager, 1);
         $queryBuilder = $entityManager->createQueryBuilder()
             ->select('p')
-            ->from('PaginationTest:ParentTestEntity', 'p')
+            ->from(ParentTestEntity::class, 'p')
             ->groupBy('p.groupKey')
         ;
 
@@ -761,11 +761,11 @@ class ResultProviderTest extends DoctrineTestCase
         $this->createTestData($entityManager);
         $queryBuilder1 = $entityManager->createQueryBuilder()
             ->select('p')
-            ->from('PaginationTest:ParentTestEntity', 'p')
+            ->from(ParentTestEntity::class, 'p')
         ;
         $queryBuilder2 = $entityManager->createQueryBuilder()
             ->select('p')
-            ->from('PaginationTest:ParentTestEntity', 'p')
+            ->from(ParentTestEntity::class, 'p')
             ->groupBy('p.groupKey')
         ;
 
