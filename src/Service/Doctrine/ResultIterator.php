@@ -24,7 +24,7 @@ class ResultIterator
         $this->defaultPageSize = $defaultPageSize;
     }
 
-    public function iterate(ConfiguredQuery $configuredQuery, Pager $startPager = null): Generator
+    public function iterate(ConfiguredQuery $configuredQuery, ?Pager $startPager = null): Generator
     {
         $pager = $startPager !== null ? clone $startPager : new Pager();
         if ($pager->getLimit() === null) {
