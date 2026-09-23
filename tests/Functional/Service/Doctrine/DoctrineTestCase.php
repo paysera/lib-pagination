@@ -27,6 +27,11 @@ abstract class DoctrineTestCase extends TestCase
         $xmlDriver = new SimplifiedXmlDriver($paths, '.orm.xml');
 
         $config = ORMSetup::createConfiguration(false, sys_get_temp_dir(), new ArrayAdapter());
+        // On PHP 8.4 Doctrine ORM 3 builds proxies as native lazy objects; without them it needs symfony/var-exporter's
+        // LazyGhost, which var-exporter 8 no longer ships and which composer installs next to symfony/cache 7.4 on PHP 8.4.
+        if (PHP_VERSION_ID >= 80400 && method_exists($config, 'enableNativeLazyObjects')) {
+            $config->enableNativeLazyObjects(true);
+        }
         $config->setMetadataDriverImpl($xmlDriver);
 
         $connection = DriverManager::getConnection(
