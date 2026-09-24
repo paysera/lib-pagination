@@ -22,6 +22,7 @@ class FlushingResultIteratorTest extends DoctrineTestCase
         }
         $entityManager->flush();
         $entityManager->clear();
+        $pageSize = 2;
 
         $resultIterator = new FlushingResultIterator(
             new ResultProvider(
@@ -29,7 +30,7 @@ class FlushingResultIteratorTest extends DoctrineTestCase
                 new CursorBuilder(PropertyAccess::createPropertyAccessor())
             ),
             new TestLogger(),
-            2,
+            $pageSize,
             $entityManager
         );
         $queryBuilder = $entityManager->createQueryBuilder()
@@ -37,32 +38,27 @@ class FlushingResultIteratorTest extends DoctrineTestCase
             ->from(ParentTestEntity::class, 'p')
         ;
 
-        $firstItem = null;
+        $iterated = [];
         $firstItemManagedOnTheSecondPage = null;
-        $iterated = 0;
         foreach ($resultIterator->iterate(new ConfiguredQuery($queryBuilder)) as $parent) {
             $parent->setName($parent->getName() . '-seen');
-            $iterated++;
-            if ($firstItem === null) {
-                $firstItem = $parent;
-            }
-            if ($iterated === 3) {
-                $firstItemManagedOnTheSecondPage = $entityManager->contains($firstItem);
+            $iterated[] = $parent;
+            if (count($iterated) === $pageSize + 1) {
+                $firstItemManagedOnTheSecondPage = $entityManager->contains($iterated[0]);
             }
         }
 
-        $storedNames = $entityManager->createQueryBuilder()
-            ->select('p.name')
-            ->from(ParentTestEntity::class, 'p')
-            ->orderBy('p.id')
-            ->getQuery()
-            ->getScalarResult()
-        ;
-        $this->assertSame(5, $iterated);
+        $this->assertCount(5, $iterated);
         $this->assertFalse($firstItemManagedOnTheSecondPage);
+        $this->assertSame([], array_filter($iterated, [$entityManager, 'contains']));
         $this->assertSame(
             ['P0-seen', 'P1-seen', 'P2-seen', 'P3-seen', 'P4-seen'],
-            array_column($storedNames, 'name')
+            $entityManager->createQueryBuilder()
+                ->select('p.name')
+                ->from(ParentTestEntity::class, 'p')
+                ->orderBy('p.id')
+                ->getQuery()
+                ->getSingleColumnResult()
         );
     }
 }

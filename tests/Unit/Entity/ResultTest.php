@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 class ResultTest extends TestCase
 {
-    public function testANewResultHasNoItemsNoTotalCountAndNoDirections()
+    public function testANewResultHasNothingSet()
     {
         $result = new Result();
 
@@ -35,6 +35,10 @@ class ResultTest extends TestCase
         $this->assertSame('"2"', $result->getNextCursor());
         $this->assertSame('"1"', $result->getPreviousCursor());
         $this->assertNull($result->setTotalCount(null)->getTotalCount());
+
+        $result->setHasNext(false)->setHasPrevious(true);
+        $this->assertFalse($result->hasNext());
+        $this->assertTrue($result->hasPrevious());
     }
 
     public function testAddedItemsAreAppendedAndIterated()

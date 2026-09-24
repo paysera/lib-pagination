@@ -21,10 +21,11 @@ class OrderingPairTest extends TestCase
 
     public function testSettersChangeTheFieldAndTheDirection()
     {
-        $orderingPair = (new OrderingPair('name'))->setOrderBy('id')->setOrderAscending(false);
+        $orderingPair = (new OrderingPair('name'))->setOrderBy('id')->setOrderAscending(true);
 
         $this->assertSame('id', $orderingPair->getOrderBy());
         $this->assertTrue($orderingPair->isOrderingDirectionSet());
-        $this->assertFalse($orderingPair->isOrderAscending());
+        $this->assertTrue($orderingPair->isOrderAscending());
+        $this->assertFalse($orderingPair->setOrderAscending(false)->isOrderAscending());
     }
 }

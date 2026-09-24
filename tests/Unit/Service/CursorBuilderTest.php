@@ -41,11 +41,15 @@ class CursorBuilderTest extends TestCase
         $this->cursorBuilder->parseCursor($cursor, 2);
     }
 
+    /**
+     * @return array<string, array{string}>
+     */
     public static function invalidCursorDataProvider(): array
     {
         return [
             'not JSON' => ['not-a-cursor'],
             'one value where two are needed' => ['"a"'],
+            'three values where two are needed' => ['"a","b","c"'],
             'a number where a string is needed' => ['"a",2'],
         ];
     }
