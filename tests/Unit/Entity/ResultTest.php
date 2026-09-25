@@ -8,44 +8,96 @@ use PHPUnit\Framework\TestCase;
 
 class ResultTest extends TestCase
 {
-    public function testANewResultHasNothingSet()
+    /**
+     * @dataProvider resultProvider
+     */
+    public function testState(callable $createResult, array $expected)
     {
-        $result = new Result();
+        $result = $createResult();
 
-        $this->assertSame([], $result->getItems());
-        $this->assertNull($result->getTotalCount());
-        $this->assertNull($result->hasNext());
-        $this->assertNull($result->hasPrevious());
+        $this->assertSame(
+            $expected,
+            [
+                'items' => $result->getItems(),
+                'iterated' => iterator_to_array($result),
+                'totalCount' => $result->getTotalCount(),
+                'hasNext' => $result->hasNext(),
+                'hasPrevious' => $result->hasPrevious(),
+                'nextCursor' => $result->getNextCursor(),
+                'previousCursor' => $result->getPreviousCursor(),
+            ]
+        );
     }
 
-    public function testGettersReturnWhatWasSet()
+    public static function resultProvider(): array
     {
-        $result = (new Result())
-            ->setItems(['a'])
-            ->setTotalCount(3)
-            ->setHasNext(true)
-            ->setHasPrevious(false)
-            ->setNextCursor('"2"')
-            ->setPreviousCursor('"1"')
-        ;
-
-        $this->assertSame(3, $result->getTotalCount());
-        $this->assertTrue($result->hasNext());
-        $this->assertFalse($result->hasPrevious());
-        $this->assertSame('"2"', $result->getNextCursor());
-        $this->assertSame('"1"', $result->getPreviousCursor());
-        $this->assertNull($result->setTotalCount(null)->getTotalCount());
-
-        $result->setHasNext(false)->setHasPrevious(true);
-        $this->assertFalse($result->hasNext());
-        $this->assertTrue($result->hasPrevious());
-    }
-
-    public function testAddedItemsAreAppendedAndIterated()
-    {
-        $result = (new Result())->setItems(['a'])->addItem('b')->addItem('c');
-
-        $this->assertSame(['a', 'b', 'c'], $result->getItems());
-        $this->assertSame(['a', 'b', 'c'], iterator_to_array($result));
+        return [
+            'new result' => [
+                function () {
+                    return new Result();
+                },
+                [
+                    'items' => [],
+                    'iterated' => [],
+                    'totalCount' => null,
+                    'hasNext' => null,
+                    'hasPrevious' => null,
+                    'nextCursor' => null,
+                    'previousCursor' => null,
+                ],
+            ],
+            'every field set' => [
+                function () {
+                    return (new Result())
+                        ->setItems(['a'])
+                        ->setTotalCount(3)
+                        ->setHasNext(true)
+                        ->setHasPrevious(false)
+                        ->setNextCursor('"2"')
+                        ->setPreviousCursor('"1"');
+                },
+                [
+                    'items' => ['a'],
+                    'iterated' => ['a'],
+                    'totalCount' => 3,
+                    'hasNext' => true,
+                    'hasPrevious' => false,
+                    'nextCursor' => '"2"',
+                    'previousCursor' => '"1"',
+                ],
+            ],
+            'total count unset and flags flipped' => [
+                function () {
+                    return (new Result())
+                        ->setTotalCount(3)
+                        ->setTotalCount(null)
+                        ->setHasNext(false)
+                        ->setHasPrevious(true);
+                },
+                [
+                    'items' => [],
+                    'iterated' => [],
+                    'totalCount' => null,
+                    'hasNext' => false,
+                    'hasPrevious' => true,
+                    'nextCursor' => null,
+                    'previousCursor' => null,
+                ],
+            ],
+            'items added after the ones set' => [
+                function () {
+                    return (new Result())->setItems(['a'])->addItem('b')->addItem('c');
+                },
+                [
+                    'items' => ['a', 'b', 'c'],
+                    'iterated' => ['a', 'b', 'c'],
+                    'totalCount' => null,
+                    'hasNext' => null,
+                    'hasPrevious' => null,
+                    'nextCursor' => null,
+                    'previousCursor' => null,
+                ],
+            ],
+        ];
     }
 }

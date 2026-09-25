@@ -19,13 +19,44 @@ class OrderingPairTest extends TestCase
         $orderingPair->isOrderAscending();
     }
 
-    public function testSettersChangeTheFieldAndTheDirection()
+    /**
+     * @dataProvider orderingPairProvider
+     */
+    public function testState(callable $createOrderingPair, array $expected)
     {
-        $orderingPair = (new OrderingPair('name'))->setOrderBy('id')->setOrderAscending(true);
+        $orderingPair = $createOrderingPair();
 
-        $this->assertSame('id', $orderingPair->getOrderBy());
-        $this->assertTrue($orderingPair->isOrderingDirectionSet());
-        $this->assertTrue($orderingPair->isOrderAscending());
-        $this->assertFalse($orderingPair->setOrderAscending(false)->isOrderAscending());
+        $this->assertSame(
+            $expected,
+            [
+                'orderBy' => $orderingPair->getOrderBy(),
+                'orderingDirectionSet' => $orderingPair->isOrderingDirectionSet(),
+                'orderAscending' => $orderingPair->isOrderAscending(),
+            ]
+        );
+    }
+
+    public static function orderingPairProvider(): array
+    {
+        return [
+            'direction given to the constructor' => [
+                function () {
+                    return new OrderingPair('name', true);
+                },
+                ['orderBy' => 'name', 'orderingDirectionSet' => true, 'orderAscending' => true],
+            ],
+            'field and direction set' => [
+                function () {
+                    return (new OrderingPair('name'))->setOrderBy('id')->setOrderAscending(true);
+                },
+                ['orderBy' => 'id', 'orderingDirectionSet' => true, 'orderAscending' => true],
+            ],
+            'direction changed to descending' => [
+                function () {
+                    return (new OrderingPair('name', true))->setOrderAscending(false);
+                },
+                ['orderBy' => 'name', 'orderingDirectionSet' => true, 'orderAscending' => false],
+            ],
+        ];
     }
 }

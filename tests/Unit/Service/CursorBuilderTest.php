@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Paysera\Pagination\Tests\Unit\Service;
 
+use Paysera\Pagination\Entity\ParsedCursor;
 use Paysera\Pagination\Exception\InvalidCursorException;
 use Paysera\Pagination\Service\CursorBuilder;
 use PHPUnit\Framework\TestCase;
@@ -20,15 +21,23 @@ class CursorBuilderTest extends TestCase
         $this->cursorBuilder = new CursorBuilder(PropertyAccess::createPropertyAccessor());
     }
 
-    public function testParsesTheValuesAndTheInclusionMark()
+    /**
+     * @dataProvider cursorDataProvider
+     */
+    public function testParsesTheValuesAndTheInclusionMark(string $cursor, ParsedCursor $expected)
     {
-        $included = $this->cursorBuilder->parseCursor('="a","2"', 2);
-        $excluded = $this->cursorBuilder->parseCursor('"a","2"', 2);
+        $this->assertEquals($expected, $this->cursorBuilder->parseCursor($cursor, 2));
+    }
 
-        $this->assertTrue($included->isCursoredItemIncluded());
-        $this->assertSame(['a', '2'], $included->getCursorElements());
-        $this->assertFalse($excluded->isCursoredItemIncluded());
-        $this->assertSame(['a', '2'], $excluded->getCursorElements());
+    public static function cursorDataProvider(): array
+    {
+        return [
+            'item included' => [
+                '="a","2"',
+                (new ParsedCursor())->setCursorElements(['a', '2'])->setCursoredItemIncluded(true),
+            ],
+            'item excluded' => ['"a","2"', (new ParsedCursor())->setCursorElements(['a', '2'])],
+        ];
     }
 
     /**
