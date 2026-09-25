@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping\Driver\SimplifiedXmlDriver;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 abstract class DoctrineTestCase extends TestCase
 {
@@ -25,7 +26,10 @@ abstract class DoctrineTestCase extends TestCase
 
         $xmlDriver = new SimplifiedXmlDriver($paths, '.orm.xml');
 
-        $config = ORMSetup::createConfiguration(false, sys_get_temp_dir());
+        $config = ORMSetup::createConfiguration(false, sys_get_temp_dir(), new ArrayAdapter());
+        if (PHP_VERSION_ID >= 80400 && method_exists($config, 'enableNativeLazyObjects')) {
+            $config->enableNativeLazyObjects(true);
+        }
         $config->setMetadataDriverImpl($xmlDriver);
 
         $connection = DriverManager::getConnection(
