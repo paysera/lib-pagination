@@ -53,12 +53,15 @@ class FlushingResultIteratorTest extends DoctrineTestCase
         $this->assertSame([], array_filter($iterated, [$entityManager, 'contains']));
         $this->assertSame(
             ['P0-seen', 'P1-seen', 'P2-seen', 'P3-seen', 'P4-seen'],
-            $entityManager->createQueryBuilder()
-                ->select('p.name')
-                ->from(ParentTestEntity::class, 'p')
-                ->orderBy('p.id')
-                ->getQuery()
-                ->getSingleColumnResult()
+            array_column(
+                $entityManager->createQueryBuilder()
+                    ->select('p.name')
+                    ->from(ParentTestEntity::class, 'p')
+                    ->orderBy('p.id')
+                    ->getQuery()
+                    ->getScalarResult(),
+                'name'
+            )
         );
     }
 }
