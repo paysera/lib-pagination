@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   phpunit:
-    name: Run tests on ${{ matrix.php-version }} with ${{ matrix.dependency-versions }} dependencies
+    name: Run tests on ${{ matrix.php-version }} with Symfony ${{ matrix.symfony }} and ${{ matrix.dependency-versions }} dependencies
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -25,12 +25,46 @@ jobs:
           - '8.2'
           - '8.3'
           - '8.4'
+        symfony:
+          - '3.*'
+          - '4.*'
+          - '5.*'
+          - '6.*'
+          - '7.*'
         dependency-versions:
           - 'lowest'
           - 'highest'
         exclude:
-          - { php-version: '7.1', dependency-versions: 'lowest' }
-          - { php-version: '7.4', dependency-versions: 'lowest' }
+          - { php-version: '7.1', symfony: '3.*', dependency-versions: 'lowest' }
+          - { php-version: '7.2', symfony: '3.*' }
+          - { php-version: '7.3', symfony: '3.*' }
+          - { php-version: '7.4', symfony: '3.*' }
+          - { php-version: '8.0', symfony: '3.*' }
+          - { php-version: '8.1', symfony: '3.*' }
+          - { php-version: '8.2', symfony: '3.*' }
+          - { php-version: '8.3', symfony: '3.*' }
+          - { php-version: '8.4', symfony: '3.*' }
+          - { php-version: '7.1', symfony: '4.*', dependency-versions: 'lowest' }
+          - { php-version: '7.2', symfony: '4.*' }
+          - { php-version: '7.3', symfony: '4.*' }
+          - { php-version: '7.4', symfony: '4.*' }
+          - { php-version: '8.0', symfony: '4.*' }
+          - { php-version: '8.1', symfony: '4.*' }
+          - { php-version: '8.2', symfony: '4.*' }
+          - { php-version: '8.3', symfony: '4.*' }
+          - { php-version: '8.4', symfony: '4.*' }
+          - { php-version: '7.1', symfony: '5.*' }
+          - { php-version: '7.1', symfony: '6.*' }
+          - { php-version: '7.2', symfony: '6.*' }
+          - { php-version: '7.3', symfony: '6.*' }
+          - { php-version: '7.4', symfony: '6.*' }
+          - { php-version: '8.0', symfony: '6.*' }
+          - { php-version: '7.1', symfony: '7.*' }
+          - { php-version: '7.2', symfony: '7.*' }
+          - { php-version: '7.3', symfony: '7.*' }
+          - { php-version: '7.4', symfony: '7.*' }
+          - { php-version: '8.0', symfony: '7.*' }
+          - { php-version: '8.1', symfony: '7.*' }
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -39,9 +73,12 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
+          tools: flex
 
       - name: Install dependencies
         uses: ramsey/composer-install@v2
+        env:
+          SYMFONY_REQUIRE: ${{ matrix.symfony }}
         with:
           dependency-versions: ${{ matrix.dependency-versions }}
 
