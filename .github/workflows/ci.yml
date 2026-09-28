@@ -26,7 +26,11 @@ jobs:
           - '8.3'
           - '8.4'
         dependency-versions:
+          - 'lowest'
           - 'highest'
+        exclude:
+          - { php-version: '7.1', dependency-versions: 'lowest' }
+          - { php-version: '7.4', dependency-versions: 'lowest' }
     steps:
       - name: Checkout
         uses: actions/checkout@v7
