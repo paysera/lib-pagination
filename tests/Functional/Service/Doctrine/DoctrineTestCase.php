@@ -9,7 +9,9 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\Driver\SimplifiedXmlDriver;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
+use Doctrine\ORM\Tools\Setup;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 abstract class DoctrineTestCase extends TestCase
@@ -26,7 +28,9 @@ abstract class DoctrineTestCase extends TestCase
 
         $xmlDriver = new SimplifiedXmlDriver($paths, '.orm.xml');
 
-        $config = ORMSetup::createConfiguration(false, sys_get_temp_dir(), new ArrayAdapter());
+        $config = class_exists(ORMSetup::class)
+            ? ORMSetup::createConfiguration(false, sys_get_temp_dir(), new ArrayAdapter())
+            : Setup::createConfiguration(true, sys_get_temp_dir());
         if (PHP_VERSION_ID >= 80400 && method_exists($config, 'enableNativeLazyObjects')) {
             $config->enableNativeLazyObjects(true);
         }
@@ -40,7 +44,9 @@ abstract class DoctrineTestCase extends TestCase
             $config
         );
 
-        $entityManager = new EntityManager($connection, $config);
+        $entityManager = (new ReflectionMethod(EntityManager::class, '__construct'))->isPublic()
+            ? new EntityManager($connection, $config)
+            : EntityManager::create($connection, $config);
 
         $metadataFactory = $entityManager->getMetadataFactory();
         $metadataFactory->getAllMetadata();
