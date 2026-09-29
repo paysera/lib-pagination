@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Declared the optional parameters of `OrderingConfiguration::__construct()`, `OrderingPair::__construct()`,
 `Result::setTotalCount()` and `ResultIterator::iterate()` explicitly nullable, as PHP 8.4 deprecates implicitly nullable
 parameters; their types are unchanged
+- Bumped `doctrine/orm` to `^2.6.4 || ^3.0`, as ORM 2.5 and 2.6.0–2.6.3 fail the total count query on PHP 7.4
 
 ## 1.5.0
 ### Added
