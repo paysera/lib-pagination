@@ -36,8 +36,6 @@ jobs:
           - 'lowest'
           - 'highest'
         exclude:
-          - { php-version: '7.4', symfony: '3.*', dependency-versions: 'lowest' }
-          - { php-version: '7.4', symfony: '4.*', dependency-versions: 'lowest' }
           - { php-version: '7.1', symfony: '5.*' }
           - { php-version: '7.1', symfony: '6.*' }
           - { php-version: '7.2', symfony: '6.*' }
