@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.6.0
+### Added
+- Added `symfony/property-access:^7.4` support
+- Added `psr/log:^3.0` support
+
+### Changed
+- Declared the optional parameters of `OrderingConfiguration::__construct()`, `OrderingPair::__construct()`,
+`Result::setTotalCount()` and `ResultIterator::iterate()` explicitly nullable, as PHP 8.4 deprecates implicitly nullable
+parameters; their types are unchanged
+- Bumped `doctrine/orm` to `^2.6.4 || ^3.0`, as ORM 2.5 and 2.6.0–2.6.3 fail the total count query on PHP 7.4
+
 ## 1.5.0
 ### Added
 - Added `doctrine/orm:^3.0` support

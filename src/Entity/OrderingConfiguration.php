@@ -28,7 +28,7 @@ class OrderingConfiguration
      */
     private $orderAscending;
 
-    public function __construct(string $orderByExpression, string $accessorPath = null)
+    public function __construct(string $orderByExpression, ?string $accessorPath = null)
     {
         $this->orderByExpression = $orderByExpression;
         $this->accessorPath = $accessorPath;

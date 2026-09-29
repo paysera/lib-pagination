@@ -17,7 +17,7 @@ class OrderingPair
      */
     private $orderAscending;
 
-    public function __construct(string $orderBy, bool $orderAscending = null)
+    public function __construct(string $orderBy, ?bool $orderAscending = null)
     {
         $this->orderBy = $orderBy;
         $this->orderAscending = $orderAscending;

@@ -51,7 +51,7 @@ class Result implements IteratorAggregate
      *
      * @return $this
      */
-    public function setTotalCount(int $totalCount = null): self
+    public function setTotalCount(?int $totalCount = null): self
     {
         $this->totalCount = $totalCount;
         return $this;
